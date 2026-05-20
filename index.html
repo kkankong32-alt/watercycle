@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
-
+        
         body {
             margin: 0;
             padding: 0;
@@ -110,8 +110,7 @@
         }
 
         #btn-jump {
-            width: 80px;
-            height: 80px;
+            width: 80px; height: 80px;
             font-size: 24px;
             background: rgba(255, 255, 255, 0.2);
         }
@@ -128,8 +127,9 @@
             font-size: 14px;
         }
 
+        /* 쿠키런 스타일의 고시인성 입체 버튼 CSS */
         .btn-casual {
-            padding: 6px 28px;
+            padding: 6px 28px; /* 위아래 여백을 줄여 버튼 두께를 얇게 만듦 */
             font-size: 18px;
             font-weight: bold;
             font-family: 'Jua', sans-serif;
@@ -141,9 +141,10 @@
             letter-spacing: 1px;
             text-shadow: 1px 1px 0px rgba(0,0,0,0.5), -1px -1px 0px rgba(0,0,0,0.5);
             position: absolute;
-            bottom: 12px;
+            bottom: 12px; /* 위치를 화면 하단으로 바짝 내림 */
         }
 
+        /* 파란색 버튼 (조작 방법 보기 / 입장하기) */
         .btn-casual.blue {
             background: linear-gradient(to bottom, #60a5fa, #2563eb);
             box-shadow: 0 8px 0 #1e3a8a, 0 15px 20px rgba(0,0,0,0.5);
@@ -153,6 +154,7 @@
             box-shadow: 0 0px 0 #1e3a8a, 0 5px 10px rgba(0,0,0,0.5);
         }
 
+        /* 초록색 버튼 (적 도감 보기) */
         .btn-casual.green {
             background: linear-gradient(to bottom, #4ade80, #16a34a);
             box-shadow: 0 8px 0 #14532d, 0 15px 20px rgba(0,0,0,0.5);
@@ -162,6 +164,7 @@
             box-shadow: 0 0px 0 #14532d, 0 5px 10px rgba(0,0,0,0.5);
         }
 
+        /* 노란/주황색 버튼 (게임 시작) */
         .btn-casual.yellow {
             background: linear-gradient(to bottom, #facc15, #ea580c);
             box-shadow: 0 8px 0 #9a3412, 0 15px 20px rgba(0,0,0,0.5);
@@ -171,6 +174,7 @@
             box-shadow: 0 0px 0 #9a3412, 0 5px 10px rgba(0,0,0,0.5);
         }
 
+        /* 기존 기본 버튼 (게임 오버 화면 등에 사용) */
         .btn-primary {
             border-radius: 9999px;
             border: 4px solid white;
@@ -197,11 +201,13 @@
         </div>
     </div>
 
+    <!-- Global Audio Controls (모든 화면에서 보이도록 최상단으로 분리) -->
     <div class="absolute top-4 right-4 z-[100] flex flex-col items-end audio-controls space-y-2 pointer-events-auto">
         <button id="btn-toggle-bgm" class="audio-btn">🎵 배경음악: 켬</button>
         <button id="btn-toggle-sfx" class="audio-btn">🔊 효과음: 켬</button>
     </div>
 
+    <!-- Controls -->
     <div id="controls" class="hidden">
         <button id="btn-jump" class="btn-action shadow-lg text-white">점프</button>
         <div class="flex space-x-2">
@@ -211,23 +217,27 @@
         </div>
     </div>
 
-    <div id="scene-init" class="scene active" 
-         style="background: url('./image21.png') no-repeat center center; background-size: cover; justify-content: flex-end; padding-bottom: 25px;">
+    <!-- 0. 오디오 초기화 대기 화면 (로컬 상대 경로 image21.png 적용 및 하단 버튼 배치) -->
+    <div id="scene-init" class="scene active" style="background: url('./assets/image21.png') no-repeat center center; background-size: cover; justify-content: flex-end; padding-bottom: 25px;">
         <button id="btn-init-audio" class="btn-casual blue">입장하기</button>
     </div>
 
-    <div id="scene-title" class="scene" style="background: url('./image1.png') no-repeat center center; background-size: cover;">
+    <!-- 1. 타이틀 화면 (로컬 상대 경로 image1.png 적용) -->
+    <div id="scene-title" class="scene" style="background: url('./assets/image1.png') no-repeat center center; background-size: cover;">
         <button id="btn-to-howto" class="btn-casual blue">조작 방법 보기</button>
     </div>
 
-    <div id="scene-howto" class="scene" style="background: url('./image2.png') no-repeat center center; background-size: cover;">
+    <!-- 2. 조작 방법 화면 (로컬 상대 경로 image2.png 적용) -->
+    <div id="scene-howto" class="scene" style="background: url('./assets/image2.png') no-repeat center center; background-size: cover;">
         <button id="btn-to-encyclopedia" class="btn-casual green">적 도감 보기</button>
     </div>
 
-    <div id="scene-encyclopedia" class="scene" style="background: url('./image3.png') no-repeat center center; background-size: cover;">
+    <!-- 3. 적 도감 화면 (로컬 상대 경로 image3.png 적용) -->
+    <div id="scene-encyclopedia" class="scene" style="background: url('./assets/image3.png') no-repeat center center; background-size: cover;">
         <button id="btn-start-game" class="btn-casual yellow">게임 시작!</button>
     </div>
 
+    <!-- 4. 게임 오버 화면 -->
     <div id="scene-gameover" class="scene">
         <h2 id="gameover-title" class="text-6xl text-red-500 mb-4 font-bold text-shadow">게임 종료</h2>
         <p id="gameover-desc" class="text-xl mb-6 text-center max-w-md text-gray-200">
@@ -244,6 +254,7 @@
         <button id="btn-restart" class="btn-primary px-10 py-3 text-xl bg-blue-600 hover:bg-blue-500 border-blue-300">다시 하기</button>
     </div>
     
+    <!-- Stage Transition Message -->
     <div id="stage-transition" class="scene bg-black bg-opacity-50" style="transition: opacity 0.5s ease;">
         <h2 id="stage-transition-text" class="text-5xl text-white font-bold text-shadow-lg tracking-widest text-center"></h2>
     </div>
@@ -264,10 +275,10 @@
     resize();
 
     const GAME_CONFIG = {
-        baseSpeed: 5,
-        speedMultiplier: 1.05,
-        spawnRate: 2000, 
-        minSpawnRate: 800, 
+        baseSpeed: 3.5, // 기본 이동 속도 하향 (기존 5 -> 3.5)
+        speedMultiplier: 1.03, // 스테이지 통과 시 속도 증가폭 완화
+        spawnRate: 2200, // 기본 스폰 간격을 더 길게 (기존 2000 -> 2200)
+        minSpawnRate: 1000, 
         stageDuration: 30000, 
         maxHp: 5
     };
@@ -279,44 +290,45 @@
     };
 
     const STAGE_COLORS = [
-        ['#0f172a', '#1e3a8a'], 
-        ['#450a0a', '#991b1b'], 
-        ['#064e3b', '#0f766e'], 
-        ['#1e1b4b', '#4c1d95']  
+        ['#0f172a', '#1e3a8a'], // Stage 1 (Ice)
+        ['#450a0a', '#991b1b'], // Stage 2 (Volcano)
+        ['#064e3b', '#0f766e'], // Stage 3 (Mist)
+        ['#1e1b4b', '#4c1d95']  // Stage 4 (Castle)
     ];
 
-    // 플레이어 캐릭터 이미지 로드 (상대 경로 수정)
+    // 플레이어 캐릭터 이미지 로드 (image8.png)
     const playerImg = new Image();
-    playerImg.src = './image8.png';
+    playerImg.src = './assets/image8.png';
 
-    // 단계별 배경 이미지 로드 (상대 경로 수정)
+    // 단계별 배경 이미지 로드 (image4.png ~ image7.png)
     const bgImages = {
         1: new Image(),
         2: new Image(),
         3: new Image(),
         4: new Image()
     };
-    bgImages[1].src = './image4.png';
-    bgImages[2].src = './image5.png';
-    bgImages[3].src = './image6.png';
-    bgImages[4].src = './image7.png';
+    bgImages[1].src = './assets/image4.png';
+    bgImages[2].src = './assets/image5.png';
+    bgImages[3].src = './assets/image6.png';
+    bgImages[4].src = './assets/image7.png';
 
-    // 적 캐릭터 이미지 전역 로드 (상대 경로 수정)
+    // 적 캐릭터 이미지 전역 로드 (image9.png ~ image20.png)
     const enemyImages = {};
     const enemyImageSrcs = {
-        '얼음 슬라임': './image9.png',
-        '냉기 박쥐': './image10.png',
-        '꼬마 눈사람': './image11.png',
-        '불꽃 도마뱀': './image12.png',
-        '용암 불덩이': './image13.png',
-        '화산재 매': './image14.png',
-        '수증기 유령': './image15.png',
-        '이슬 요정': './image16.png',
-        '먹구름 정령': './image17.png',
-        '혼돈 정령': './image18.png',
-        '상태 로봇': './image19.png',
-        '흑마법 불꽃': './image20.png'
+        '얼음 슬라임': './assets/image9.png',
+        '냉기 박쥐': './assets/image10.png',
+        '꼬마 눈사람': './assets/image11.png',
+        '불꽃 도마뱀': './assets/image12.png',
+        '용암 불덩이': './assets/image13.png',
+        '화산재 매': './assets/image14.png',
+        '수증기 유령': './assets/image15.png',
+        '이슬 요정': './assets/image16.png',
+        '먹구름 정령': './assets/image17.png',
+        '혼돈 정령': './assets/image18.png',
+        '상태 로봇': './assets/image19.png',
+        '흑마법 불꽃': './assets/image20.png'
     };
+    
     for (const [name, src] of Object.entries(enemyImageSrcs)) {
         const img = new Image();
         img.src = src;
@@ -335,24 +347,26 @@
         currentSpawnRate: GAME_CONFIG.spawnRate,
         nextSpawnDelay: 0,
         bgX: 0,
-        heartSpawnCount: 0 
+        heartSpawnCount: 0 // 한 게임에 스폰된 하트 개수 추적
     };
 
     let player, enemies = [], particles = [], floatingTexts = [];
     let lastTime = 0;
     let reqId;
-
+    
+    // 상태 및 몬스터 중복 가드 변수
     window.lastSpawnedEnemy = ''; 
     window.lastSpawnedWeakness = '';
     window.weaknessStreakCount = 0;
 
-    // 오디오 컨텍스트 및 로컬 배경음악 주소 수정
+    // 오디오 컨텍스트 및 로컬 배경음악 2개 세트 로딩 (bgm.mp3: 타이틀, bgm2.mp3: 인게임)
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    const bgmAudio = new Audio('./bgm.mp3');
+    
+    const bgmAudio = new Audio('./assets/bgm.mp3');
     bgmAudio.loop = true;
     bgmAudio.volume = 0.3;
 
-    const bgm2Audio = new Audio('./bgm2.mp3');
+    const bgm2Audio = new Audio('./assets/bgm2.mp3');
     bgm2Audio.loop = true;
     bgm2Audio.volume = 0.3;
 
@@ -360,29 +374,31 @@
     let sfxEnabled = true;
     let isAudioInit = false;
 
+    // 입장 버튼 클릭 시 오디오 권한을 완벽히 획득하고 타이틀 화면으로 진입
     document.getElementById('btn-init-audio').addEventListener('click', () => {
         if (!isAudioInit) {
             isAudioInit = true;
             if (audioCtx.state === 'suspended') audioCtx.resume();
             if (bgmEnabled) {
-                playBGM(false); 
+                playBGM(false); // 메인 타이틀음 자동 재생
             }
         }
         switchScene('scene-title');
     });
 
+    // 오디오 UI 조작 설정
     document.getElementById('btn-toggle-bgm').addEventListener('click', (e) => {
         bgmEnabled = !bgmEnabled;
         e.target.innerText = bgmEnabled ? '🎵 배경음악: 켬' : '🎵 배경음악: 끔';
         if (!bgmEnabled) stopBGM();
         else playBGM(gameState.isPlaying);
     });
-
     document.getElementById('btn-toggle-sfx').addEventListener('click', (e) => {
         sfxEnabled = !sfxEnabled;
         e.target.innerText = sfxEnabled ? '🔊 효과음: 켬' : '🔊 효과음: 끔';
     });
 
+    // 효과음 출력 함수
     function playTone(freq, type, duration, vol = 0.1) {
         if (!sfxEnabled || audioCtx.state === 'suspended') return;
         const osc = audioCtx.createOscillator();
@@ -407,6 +423,7 @@
         gameover: () => { playTone(200, 'sawtooth', 0.5); setTimeout(() => playTone(100, 'sawtooth', 1.0), 300); }
     };
 
+    // BGM 통합 관리 함수 (isGameplay 파라미터로 bgm/bgm2 전환)
     function playBGM(isGameplay = false) {
         if (!bgmEnabled) return;
         stopBGM();
@@ -424,13 +441,13 @@
 
     class Player {
         constructor() {
-            this.w = 40;
-            this.h = 40;
+            this.w = 40; this.h = 40;
             this.x = 50;
             this.y = height - this.h - 20;
             this.vy = 0;
-            this.gravity = 1.6;
-            this.jumpForce = -20; 
+            this.gravity = 0.7;       // 상승 시 중력 (더 낮춰서 천천히 부드럽게 올라가게 함)
+            this.fallGravity = 1.6;   // 낙하 시 중력 (기존처럼 빠르게 떨어지게 함)
+            this.jumpForce = -13.5;   // 초기 점프 속도 (기존 -16에서 확 낮춰 덜 튀어오르게 함)
             this.state = 'WATER';
             this.isInvincible = false;
             this.invincibleTimer = 0;
@@ -438,23 +455,32 @@
         }
 
         update(dt) {
-            this.vy += this.gravity;
-            this.y += this.vy;
+            // 주사율 차이 극복을 위해 delta time 보정 계수 산출 (표준 60fps = 16.67ms 기준)
+            const actualDt = dt || 16.67;
+            const timeScale = actualDt / 16.67;
+            const safeScale = Math.min(timeScale, 3); // 비정상적으로 프레임이 튀는 것 방지
+
+            // 핵심: 위로 올라갈 때(vy < 0)와 아래로 떨어질 때의 중력을 다르게 적용!
+            const currentGravity = this.vy < 0 ? this.gravity : this.fallGravity;
+
+            this.vy += currentGravity * safeScale;
+            this.y += this.vy * safeScale;
             const groundY = height - this.h - 20;
+
             if (this.y > groundY) {
                 this.y = groundY;
                 this.vy = 0;
             }
 
             if (this.isInvincible) {
-                this.invincibleTimer -= dt;
+                this.invincibleTimer -= actualDt;
                 if (this.invincibleTimer <= 0) this.isInvincible = false;
             }
-            this.animTimer += dt;
+            this.animTimer += actualDt;
         }
 
         jump() {
-            this.vy = this.jumpForce;
+            this.vy = this.jumpForce; 
             sfx.jump();
             for(let i=0; i<5; i++) {
                 particles.push(new Particle(this.x + this.w/2, this.y + this.h, STATES[this.state].color));
@@ -473,11 +499,13 @@
 
         draw(ctx) {
             if (this.isInvincible && Math.floor(this.animTimer / 100) % 2 === 0) return;
+            
             let drawW = this.w; let drawH = this.h;
             let drawY = this.y;
             if (this.vy < 0) { drawW = this.w * 0.9; drawH = this.h * 1.1; }
             else if (this.vy > 0) { drawW = this.w * 1.1; drawH = this.h * 0.9; drawY += this.h*0.1; }
 
+            // 플레이어 로컬 이미지 그리기
             if (playerImg.complete && playerImg.naturalWidth > 0) {
                 ctx.drawImage(playerImg, this.x - 10, drawY - 10, drawW + 20, drawH + 20);
             } else {
@@ -487,6 +515,7 @@
                 ctx.fill();
             }
 
+            // 머리 위에 현재 상태 아이콘 표시
             ctx.font = '18px Arial';
             ctx.textAlign = 'center';
             ctx.textBaseline = 'middle';
@@ -503,29 +532,41 @@
             this.animTimer = Math.random() * 1000;
             
             this.setupType();
+            
+            // 높이 및 스폰 위치 완전 다이나믹 랜덤화
             const groundY = height - this.h - 20;
             const minY = 80; 
             const roll = Math.random();
             
             if (roll < 0.20) {
+                // 바닥 영역 (20%)
                 this.y = groundY;
             } else if (roll < 0.60) {
+                // 중간 공중 영역 (40%)
                 this.y = minY + (groundY - minY) * 0.4 + (Math.random() - 0.5) * 60;
             } else {
+                // 높은 공중 영역 (40%)
                 this.y = minY + (groundY - minY) * 0.1 + Math.random() * ((groundY - minY) * 0.3);
             }
             this.baseY = this.y;
-            this.actualSpeed = this.config.speed * (0.6 + Math.random() * 1.4);
+            
+            // 다이나믹 속도를 좀 더 쾌적하고 대처 가능하게 완화 (0.8배 ~ 1.3배)
+            this.actualSpeed = this.config.speed * (0.8 + Math.random() * 0.5);
+
+            // Sine 궤적의 진폭 및 주파수를 덜 어지럽게 조정
             if (this.config.type === 'sine') {
-                this.config.amp = 50 + Math.random() * 80;
-                this.config.freq = 0.003 + Math.random() * 0.009; 
+                this.config.amp = 40 + Math.random() * 40; 
+                this.config.freq = 0.002 + Math.random() * 0.003; 
             }
         }
 
         setupType() {
+            // 화면에 이미 하트 아이템이 떠 있는지 체크
             const hasHeartOnScreen = enemies.some(e => e.config && e.config.name === '하트 아이템');
+
+            // 체력이 2칸 이하로 남았고, 화면에 이미 하트가 없고, 한 게임당 하트 스폰 횟수가 3회 미만일 때 25% 확률로 생명 회복 하트 스폰
             if (gameState && gameState.hp <= 2 && !hasHeartOnScreen && gameState.heartSpawnCount < 3 && Math.random() < 0.25) {
-                gameState.heartSpawnCount++;
+                gameState.heartSpawnCount++; // 스폰 횟수 카운터 증가
                 this.config = {
                     name: '하트 아이템',
                     weak: 'ALL',
@@ -559,12 +600,14 @@
             let stageIdx = Math.min(this.stage - 1, 3);
             let pool;
 
+            // 1~3단계 진행 중에도 15% 확률로 4단계의 고난도 정예 몹이 튀어나와 변수 유도!
             if (stageIdx < 3 && Math.random() < 0.15) {
                 pool = types[3];
             } else {
                 pool = types[stageIdx];
             }
             
+            // 동일 약점 연속 3회 출현 차단 알고리즘 적용
             let availablePool = pool;
             if (window.weaknessStreakCount >= 2) {
                 availablePool = pool.filter(e => e.weak !== window.lastSpawnedWeakness);
@@ -579,6 +622,7 @@
             this.config = availablePool[Math.floor(Math.random() * availablePool.length)];
             window.lastSpawnedEnemy = this.config.name;
             
+            // 약점 연속 패턴 카운터 누적
             let currentWeak = this.config.weak;
             if (currentWeak === window.lastSpawnedWeakness) {
                 window.weaknessStreakCount++;
@@ -620,34 +664,40 @@
         }
 
         getDisplayWeaknessColor() {
-            if (this.weakness === 'ALL') return '#f43f5e';
-            if (this.weakness === 'RANDOM' && this.revealTimer > 0) return '#9ca3af';
+            if (this.weakness === 'ALL') return '#f43f5e'; // 하트 아이템의 핑크/레드 색상 대응
+            if (this.weakness === 'RANDOM' && this.revealTimer > 0) return '#9ca3af'; 
             if (this.weakness === 'RANDOM') return STATES[this.actualWeakness].color;
             if (this.weakness === 'CYCLE') return STATES[this.cycleKeys[this.cycleIdx]].color;
             return STATES[this.weakness].color;
         }
 
         update(dt) {
-            this.animTimer += dt;
-            const s = gameState.speed * this.actualSpeed;
+            // 주사율에 영향을 받지 않도록 delta time 보정 적용
+            const actualDt = dt || 16.67;
+            const timeScale = actualDt / 16.67;
+            const safeScale = Math.min(timeScale, 3);
+
+            this.animTimer += actualDt;
+            const s = gameState.speed * this.actualSpeed * safeScale;
             const groundY = height - this.h - 20;
+            
             if (this.config.type === 'sine') {
-                this.x -= s;
+                this.x -= s; 
                 this.y = this.baseY + Math.sin(this.animTimer * this.config.freq) * (this.config.amp || 50);
-                if (this.y > groundY) this.y = groundY;
+                if (this.y > groundY) this.y = groundY; 
             } else if (this.config.type === 'erratic') {
                 this.x -= s;
-                if (Math.random() < 0.05) this.baseY += (Math.random() - 0.5) * 60;
-                if (this.baseY > groundY) this.baseY = groundY;
+                if (Math.random() < 0.05 * safeScale) this.baseY += (Math.random() - 0.5) * 60 * safeScale;
+                if (this.baseY > groundY) this.baseY = groundY; 
                 if (this.baseY < 100) this.baseY = 100;
-                this.y += (this.baseY - this.y) * 0.1;
+                this.y += (this.baseY - this.y) * 0.1 * safeScale;
             } else {
                 this.x -= s;
             }
 
-            if (this.weakness === 'RANDOM' && this.revealTimer > 0) this.revealTimer -= dt;
+            if (this.weakness === 'RANDOM' && this.revealTimer > 0) this.revealTimer -= actualDt;
             if (this.weakness === 'CYCLE') {
-                this.cycleTimer += dt;
+                this.cycleTimer += actualDt;
                 if (this.cycleTimer > 2000) {
                     this.cycleTimer = 0;
                     this.cycleIdx = (this.cycleIdx + 1) % 3;
@@ -657,6 +707,7 @@
         }
 
         draw(ctx) {
+            // 원형 배경 제거 후 로컬 이미지 파일 그리기 (하트 아이템은 예쁜 글로우 하트 렌더링)
             const img = enemyImages[this.config.name];
             if (this.config.name === '하트 아이템') {
                 ctx.save();
@@ -676,6 +727,7 @@
                 ctx.fillText(this.icon, this.x + this.w/2, this.y + this.h/2);
             }
 
+            // 힌트 말풍선(약점 알림) 그리기
             const hint = this.getHintText();
             const dColor = this.getDisplayWeaknessColor();
             
@@ -710,6 +762,7 @@
             ctx.fillStyle = '#000';
             ctx.fillText(hint, bx, by - 10);
             
+            // 이름 태그 추가
             ctx.font = 'bold 14px Jua';
             ctx.fillStyle = this.config.name === '하트 아이템' ? '#f43f5e' : '#facc15';
             ctx.strokeStyle = '#000';
@@ -721,8 +774,7 @@
 
     class Particle {
         constructor(x, y, color) {
-            this.x = x;
-            this.y = y; this.color = color;
+            this.x = x; this.y = y; this.color = color;
             this.vx = (Math.random() - 0.5) * 10;
             this.vy = (Math.random() - 0.5) * 10;
             this.life = 1.0;
@@ -730,8 +782,7 @@
             this.size = Math.random() * 6 + 2;
         }
         update() {
-            this.x += this.vx;
-            this.y += this.vy;
+            this.x += this.vx; this.y += this.vy;
             this.life -= this.decay;
         }
         draw(ctx) {
@@ -744,8 +795,7 @@
 
     class FloatingText {
         constructor(x, y, text, color, isBig = false) {
-            this.x = x;
-            this.y = y; this.text = text; this.color = color;
+            this.x = x; this.y = y; this.text = text; this.color = color;
             this.life = 1.0; this.vy = -2; this.isBig = isBig;
         }
         update() { this.y += this.vy; this.life -= 0.02; }
@@ -754,8 +804,7 @@
             ctx.fillStyle = this.color;
             ctx.font = this.isBig ? 'bold 36px Jua' : 'bold 24px Jua';
             ctx.textAlign = 'center';
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 3;
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
             ctx.strokeText(this.text, this.x, this.y);
             ctx.fillText(this.text, this.x, this.y);
             ctx.globalAlpha = 1.0;
@@ -765,13 +814,17 @@
     function drawBackground(dt) {
         const currentStage = Math.min(gameState.stage, 4);
         const img = bgImages[currentStage];
+        const actualDt = dt || 16.67;
+        const timeScale = actualDt / 16.67;
+        const safeScale = Math.min(timeScale, 3);
 
+        // 각 단계별 로컬 배경 이미지 무한 스크롤 처리
         if (img && img.complete && img.naturalWidth > 0) {
             const imgAspect = img.naturalWidth / img.naturalHeight;
             let drawWidth = height * imgAspect;
             if (isNaN(drawWidth) || drawWidth === 0) drawWidth = width;
 
-            gameState.bgX -= (gameState.speed * 0.3);
+            gameState.bgX -= (gameState.speed * 0.3) * safeScale; // 주사율 보정된 속도 적용
             if (gameState.bgX <= -drawWidth) {
                 gameState.bgX += drawWidth;
             }
@@ -828,8 +881,10 @@
             lastSpawnTime: 0, currentSpawnRate: GAME_CONFIG.spawnRate,
             nextSpawnDelay: GAME_CONFIG.spawnRate,
             bgX: 0,
-            heartSpawnCount: 0 
+            heartSpawnCount: 0 // 게임 새로 시작할 때 하트 스폰 제한 초기화
         };
+        
+        // 가드 초기화
         window.lastSpawnedEnemy = '';
         window.lastSpawnedWeakness = '';
         window.weaknessStreakCount = 0;
@@ -840,7 +895,7 @@
         switchScene(null);
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
-        playBGM(true);
+        playBGM(true); // 게임 시작 시 경쾌한 인게임용 BGM(bgm2.mp3)으로 변경 재생
         lastTime = performance.now();
         reqId = requestAnimationFrame(gameLoop);
     }
@@ -857,7 +912,9 @@
         cancelAnimationFrame(reqId);
         stopBGM();
         
+        // 게임 종료 후 다시 타이틀용 BGM(bgm.mp3)을 틀어 자연스러운 환경 유도
         playBGM(false);
+        
         const titleEl = document.getElementById('gameover-title');
         const descEl = document.getElementById('gameover-desc');
         
@@ -865,7 +922,7 @@
             sfx.stage();
             titleEl.innerText = "✨ 게임 클리어! ✨";
             titleEl.className = "text-5xl text-blue-400 mb-4 font-bold text-shadow";
-            descEl.innerHTML = "\"대단해요!<br>열 마법사를 물리쳤어요!<br>당신은 진정한 <span class='text-blue-300 font-bold'>물의 상태 변화 마스터</span>입니다!<br>물 왕국에 다시 평화가 찾아왔어요.\"";
+            descEl.innerHTML = "\"대단해요! 열 마법사를 물리쳤어요!<br>당신은 진정한 <span class='text-blue-300 font-bold'>물의 상태 변화 마스터</span>입니다!<br>물 왕국에 다시 평화가 찾아왔어요.\"";
         } else {
             sfx.gameover();
             titleEl.innerText = "게임 종료";
@@ -875,9 +932,11 @@
         
         document.getElementById('controls').classList.add('hidden');
         document.getElementById('hud').style.pointerEvents = 'none';
+        
         const highScore = parseInt(localStorage.getItem('waterRunHighScore') || '0');
         document.getElementById('result-score').innerText = gameState.score;
         document.getElementById('result-stage').innerText = gameState.stage;
+        
         if (gameState.score > highScore) {
             localStorage.setItem('waterRunHighScore', gameState.score);
             document.getElementById('result-highscore').innerText = gameState.score;
@@ -928,7 +987,8 @@
         if (timestamp - gameState.lastSpawnTime > gameState.nextSpawnDelay) {
             enemies.push(new Enemy(gameState.stage));
             gameState.lastSpawnTime = timestamp;
-            gameState.nextSpawnDelay = gameState.currentSpawnRate * (0.3 + Math.random() * 1.5);
+            // 적 스폰 간격이 너무 갑자기 몰아치지 않도록 완충 구간 설정
+            gameState.nextSpawnDelay = gameState.currentSpawnRate * (0.6 + Math.random() * 0.8);
         }
 
         for (let i = enemies.length - 1; i >= 0; i--) {
@@ -936,17 +996,20 @@
             enemy.update(dt);
             
             if (!enemy.markedForDeletion && checkCollision(player, enemy)) {
+                // 하트 아이템 충돌 처리 (플레이어가 무적 상태여도 안전하게 회복 획득 가능)
                 if (enemy.config.name === '하트 아이템') {
                     if (gameState.hp < GAME_CONFIG.maxHp) {
                         gameState.hp++;
                         updateHUD();
                     }
-                    sfx.kill();
+                    sfx.kill(); // 획득 사운드 재생
                     for(let k=0; k<15; k++) particles.push(new Particle(enemy.x+enemy.w/2, enemy.y+enemy.h/2, '#f43f5e'));
                     floatingTexts.push(new FloatingText(enemy.x, enemy.y, `HP +1 ❤️`, '#f43f5e', true));
                     enemy.markedForDeletion = true;
                 } else if (!player.isInvincible) {
+                    // 일반 장애물 충돌 처리
                     const actualWeakness = enemy.getActualWeakness();
+                    
                     if (player.state === actualWeakness) {
                         let gainedScore = 10;
                         if (enemy.config.name === '혼돈 정령') gainedScore = 50; 
@@ -997,16 +1060,19 @@
         reqId = requestAnimationFrame(gameLoop);
     }
 
+    // 네비게이션 제어
     document.getElementById('btn-to-howto').addEventListener('click', () => switchScene('scene-howto'));
     document.getElementById('btn-to-encyclopedia').addEventListener('click', () => switchScene('scene-encyclopedia'));
     document.getElementById('btn-start-game').addEventListener('click', initGame);
     document.getElementById('btn-restart').addEventListener('click', initGame);
 
+    // 터치 및 모바일 조작계 바인딩
     document.getElementById('btn-jump').addEventListener('pointerdown', (e) => { e.preventDefault(); if(gameState.isPlaying) player.jump(); });
     document.getElementById('btn-water').addEventListener('pointerdown', (e) => { e.preventDefault(); if(gameState.isPlaying) player.setState('WATER'); });
     document.getElementById('btn-ice').addEventListener('pointerdown', (e) => { e.preventDefault(); if(gameState.isPlaying) player.setState('ICE'); });
     document.getElementById('btn-vapor').addEventListener('pointerdown', (e) => { e.preventDefault(); if(gameState.isPlaying) player.setState('VAPOR'); });
 
+    // PC 키보드 단축키
     window.addEventListener('keydown', (e) => {
         if (!gameState.isPlaying) return;
         if (e.code === 'Space') { e.preventDefault(); player.jump(); }
@@ -1014,6 +1080,7 @@
         if (e.key === '2') player.setState('ICE');
         if (e.key === '3') player.setState('VAPOR');
     });
+
     window.addEventListener('contextmenu', e => e.preventDefault());
 
 </script>
