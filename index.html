@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>물 탐험대: 상태 변화 런</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Jua&display=swap');
+        
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #1a1a2e;
+            font-family: 'Jua', sans-serif;
+            overflow: hidden;
+            touch-action: manipulation;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        #game-container {
+            position: relative;
+            max-width: 800px;
+            margin: 0 auto;
+            height: 100svh;
+            background: #000;
+            overflow: hidden;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .scene {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.85);
+            color: white;
+            z-index: 50;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .scene.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #hud {
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            padding: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 20;
+            pointer-events: none;
+        }
+
+        .hud-text {
+            text-shadow: 2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000;
+        }
+
+        #controls {
+            position: absolute;
+            bottom: 20px; left: 0; right: 0;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-end;
+            z-index: 20;
+        }
+
+        .btn-action {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            border: 3px solid rgba(255,255,255,0.5);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            font-size: 32px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            pointer-events: auto;
+            cursor: pointer;
+            transition: all 0.1s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            font-family: 'Jua', sans-serif;
+        }
+
+        .btn-action:active {
+            transform: scale(0.9);
+        }
+
+        .btn-action.active {
+            border-color: #fff;
+            background: rgba(255,255,255,0.2);
+            box-shadow: 0 0 15px currentColor;
+            transform: scale(1.1);
+        }
+
+        #btn-jump {
+            width: 80px; height: 80px;
+            font-size: 24px;
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .audio-controls { pointer-events: auto; }
+        .audio-btn {
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #fff;
+            border-radius: 20px;
+            padding: 5px 15px;
+            color: white;
+            font-family: 'Jua', sans-serif;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        /* 쿠키런 스타일의 고시인성 입체 버튼 CSS */
+        .btn-casual {
+            padding: 6px 28px; /* 위아래 여백을 줄여 버튼 두께를 얇게 만듦 */
+            font-size: 18px;
+            font-weight: bold;
+            font-family: 'Jua', sans-serif;
+            color: #ffffff;
+            border: 3px solid #ffffff;
+            border-radius: 40px;
+            cursor: pointer;
+            transition: all 0.1s;
+            letter-spacing: 1px;
+            text-shadow: 1px 1px 0px rgba(0,0,0,0.5), -1px -1px 0px rgba(0,0,0,0.5);
+            position: absolute;
+            bottom: 12px; /* 위치를 화면 하단으로 바짝 내림 */
+        }
+
+        /* 파란색 버튼 (조작 방법 보기 / 입장하기) */
+        .btn-casual.blue {
+            background: linear-gradient(to bottom, #60a5fa, #2563eb);
+            box-shadow: 0 8px 0 #1e3a8a, 0 15px 20px rgba(0,0,0,0.5);
+        }
+        .btn-casual.blue:active {
+            transform: translateY(8px);
+            box-shadow: 0 0px 0 #1e3a8a, 0 5px 10px rgba(0,0,0,0.5);
+        }
+
+        /* 초록색 버튼 (적 도감 보기) */
+        .btn-casual.green {
+            background: linear-gradient(to bottom, #4ade80, #16a34a);
+            box-shadow: 0 8px 0 #14532d, 0 15px 20px rgba(0,0,0,0.5);
+        }
+        .btn-casual.green:active {
+            transform: translateY(8px);
+            box-shadow: 0 0px 0 #14532d, 0 5px 10px rgba(0,0,0,0.5);
+        }
+
+        /* 노란/주황색 버튼 (게임 시작) */
+        .btn-casual.yellow {
+            background: linear-gradient(to bottom, #facc15, #ea580c);
+            box-shadow: 0 8px 0 #9a3412, 0 15px 20px rgba(0,0,0,0.5);
+        }
+        .btn-casual.yellow:active {
+            transform: translateY(8px);
+            box-shadow: 0 0px 0 #9a3412, 0 5px 10px rgba(0,0,0,0.5);
+        }
+
+        /* 기존 기본 버튼 (게임 오버 화면 등에 사용) */
+        .btn-primary {
+            border-radius: 9999px;
+            border: 4px solid white;
+            color: white;
+            font-family: 'Jua', sans-serif;
+            transition: transform 0.2s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+    </style>
+</head>
+<body>
+
+<div id="game-container">
+    <canvas id="gameCanvas"></canvas>
+
+    <div id="hud">
+        <div class="flex flex-col">
+            <div id="hp-display" class="text-2xl hud-text tracking-widest text-red-500">❤️❤️❤️❤️❤️</div>
+            <div id="stage-text" class="text-xl hud-text text-yellow-300 mt-1">1단계: 얼음 동굴</div>
+        </div>
+        <div class="text-center">
+            <div id="score-display" class="text-3xl hud-text text-white">0</div>
+            <div id="combo-display" class="text-xl hud-text text-yellow-400 hidden animate-bounce">2 연속 처치!</div>
+        </div>
+    </div>
+
+    <!-- Global Audio Controls (모든 화면에서 보이도록 최상단으로 분리) -->
+    <div class="absolute top-4 right-4 z-[100] flex flex-col items-end audio-controls space-y-2 pointer-events-auto">
+        <button id="btn-toggle-bgm" class="audio-btn">🎵 배경음악: 켬</button>
+        <button id="btn-toggle-sfx" class="audio-btn">🔊 효과음: 켬</button>
+    </div>
+
+    <!-- Controls -->
+    <div id="controls" class="hidden">
+        <button id="btn-jump" class="btn-action shadow-lg text-white">점프</button>
+        <div class="flex space-x-2">
+            <button id="btn-water" class="btn-action active" style="color:#60a5fa">💧</button>
+            <button id="btn-ice" class="btn-action" style="color:#a7f3d0">❄️</button>
+            <button id="btn-vapor" class="btn-action" style="color:#e5e7eb">☁️</button>
+        </div>
+    </div>
+
+    <!-- 0. 오디오 초기화 대기 화면 (로컬 상대 경로 image21.png 적용 및 하단 버튼 배치) -->
+    <div id="scene-init" class="scene active" style="background: url('./assets/image21.png') no-repeat center center; background-size: cover; justify-content: flex-end; padding-bottom: 25px;">
+        <button id="btn-init-audio" class="btn-casual blue">입장하기</button>
+    </div>
+
+    <!-- 1. 타이틀 화면 (로컬 상대 경로 image1.png 적용) -->
+    <div id="scene-title" class="scene" style="background: url('./assets/image1.png') no-repeat center center; background-size: cover;">
+        <button id="btn-to-howto" class="btn-casual blue">조작 방법 보기</button>
+    </div>
+
+    <!-- 2. 조작 방법 화면 (로컬 상대 경로 image2.png 적용) -->
+    <div id="scene-howto" class="scene" style="background: url('./assets/image2.png') no-repeat center center; background-size: cover;">
+        <button id="btn-to-encyclopedia" class="btn-casual green">적 도감 보기</button>
+    </div>
+
+    <!-- 3. 적 도감 화면 (로컬 상대 경로 image3.png 적용) -->
+    <div id="scene-encyclopedia" class="scene" style="background: url('./assets/image3.png') no-repeat center center; background-size: cover;">
+        <button id="btn-start-game" class="btn-casual yellow">게임 시작!</button>
+    </div>
+
+    <!-- 4. 게임 오버 화면 -->
+    <div id="scene-gameover" class="scene">
+        <h2 id="gameover-title" class="text-6xl text-red-500 mb-4 font-bold text-shadow">게임 종료</h2>
+        <p id="gameover-desc" class="text-xl mb-6 text-center max-w-md text-gray-200">
+            "탐험대원이 쓰러졌어요...<br>하지만 왕국은 아직 포기하지 않았어요!<br>다시 도전해서 물 왕국을 구해주세요!"
+        </p>
+        
+        <div class="bg-gray-800 bg-opacity-80 p-6 rounded-2xl mb-8 border border-gray-600 min-w-[250px] text-center">
+            <div class="text-xl text-gray-300 mb-2">최종 점수: <span id="result-score" class="text-3xl text-white font-bold">0</span></div>
+            <div class="text-lg text-yellow-400 mb-2">최고 점수: <span id="result-highscore" class="text-2xl font-bold">0</span></div>
+            <div class="text-md text-gray-400">도달 단계: <span id="result-stage">1</span>단계</div>
+            <div id="new-record" class="hidden text-2xl text-green-400 mt-4 animate-pulse font-bold">🎉 새로운 최고 기록! 🎉</div>
+        </div>
+
+        <button id="btn-restart" class="btn-primary px-10 py-3 text-xl bg-blue-600 hover:bg-blue-500 border-blue-300">다시 하기</button>
+    </div>
+    
+    <!-- Stage Transition Message -->
+    <div id="stage-transition" class="scene bg-black bg-opacity-50" style="transition: opacity 0.5s ease;">
+        <h2 id="stage-transition-text" class="text-5xl text-white font-bold text-shadow-lg tracking-widest text-center"></h2>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    let width, height;
+
+    function resize() {
+        width = canvas.parentElement.clientWidth;
+        height = canvas.parentElement.clientHeight;
+        canvas.width = width;
+        canvas.height = height;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    const GAME_CONFIG = {
+        baseSpeed: 5,
+        speedMultiplier: 1.05,
+        spawnRate: 2000, 
+        minSpawnRate: 800, 
+        stageDuration: 30000, 
+        maxHp: 5
+    };
+
+    const STATES = {
+        'WATER': { emoji: '💧', color: '#60a5fa', name: '물' },
+        'ICE': { emoji: '❄️', color: '#a7f3d0', name: '얼음' },
+        'VAPOR': { emoji: '☁️', color: '#e5e7eb', name: '수증기' }
+    };
+
+    const STAGE_COLORS = [
+        ['#0f172a', '#1e3a8a'], // Stage 1 (Ice)
+        ['#450a0a', '#991b1b'], // Stage 2 (Volcano)
+        ['#064e3b', '#0f766e'], // Stage 3 (Mist)
+        ['#1e1b4b', '#4c1d95']  // Stage 4 (Castle)
+    ];
+
+    // 플레이어 캐릭터 이미지 로드 (image8.png)
+    const playerImg = new Image();
+    playerImg.src = './assets/image8.png';
+
+    // 단계별 배경 이미지 로드 (image4.png ~ image7.png)
+    const bgImages = {
+        1: new Image(),
+        2: new Image(),
+        3: new Image(),
+        4: new Image()
+    };
+    bgImages[1].src = './assets/image4.png';
+    bgImages[2].src = './assets/image5.png';
+    bgImages[3].src = './assets/image6.png';
+    bgImages[4].src = './assets/image7.png';
+
+    // 적 캐릭터 이미지 전역 로드 (image9.png ~ image20.png)
+    const enemyImages = {};
+    const enemyImageSrcs = {
+        '얼음 슬라임': './assets/image9.png',
+        '냉기 박쥐': './assets/image10.png',
+        '꼬마 눈사람': './assets/image11.png',
+        '불꽃 도마뱀': './assets/image12.png',
+        '용암 불덩이': './assets/image13.png',
+        '화산재 매': './assets/image14.png',
+        '수증기 유령': './assets/image15.png',
+        '이슬 요정': './assets/image16.png',
+        '먹구름 정령': './assets/image17.png',
+        '혼돈 정령': './assets/image18.png',
+        '상태 로봇': './assets/image19.png',
+        '흑마법 불꽃': './assets/image20.png'
+    };
+    
+    for (const [name, src] of Object.entries(enemyImageSrcs)) {
+        const img = new Image();
+        img.src = src;
+        enemyImages[name] = img;
+    }
+
+    let gameState = {
+        isPlaying: false,
+        score: 0,
+        combo: 0,
+        hp: GAME_CONFIG.maxHp,
+        stage: 1,
+        time: 0,
+        speed: GAME_CONFIG.baseSpeed,
+        lastSpawnTime: 0,
+        currentSpawnRate: GAME_CONFIG.spawnRate,
+        nextSpawnDelay: 0,
+        bgX: 0,
+        heartSpawnCount: 0 // 한 게임에 스폰된 하트 개수 추적
+    };
+
+    let player, enemies = [], particles = [], floatingTexts = [];
+    let lastTime = 0;
+    let reqId;
+    
+    // 상태 및 몬스터 중복 가드 변수
+    window.lastSpawnedEnemy = ''; 
+    window.lastSpawnedWeakness = '';
+    window.weaknessStreakCount = 0;
+
+    // 오디오 컨텍스트 및 로컬 배경음악 2개 세트 로딩 (bgm.mp3: 타이틀, bgm2.mp3: 인게임)
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    
+    const bgmAudio = new Audio('./assets/bgm.mp3');
+    bgmAudio.loop = true;
+    bgmAudio.volume = 0.3;
+
+    const bgm2Audio = new Audio('./assets/bgm2.mp3');
+    bgm2Audio.loop = true;
+    bgm2Audio.volume = 0.3;
+
+    let bgmEnabled = true;
+    let sfxEnabled = true;
+    let isAudioInit = false;
+
+    // 입장 버튼 클릭 시 오디오 권한을 완벽히 획득하고 타이틀 화면으로 진입
+    document.getElementById('btn-init-audio').addEventListener('click', () => {
+        if (!isAudioInit) {
+            isAudioInit = true;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (bgmEnabled) {
+                playBGM(false); // 메인 타이틀음 자동 재생
+            }
+        }
+        switchScene('scene-title');
+    });
+
+    // 오디오 UI 조작 설정
+    document.getElementById('btn-toggle-bgm').addEventListener('click', (e) => {
+        bgmEnabled = !bgmEnabled;
+        e.target.innerText = bgmEnabled ? '🎵 배경음악: 켬' : '🎵 배경음악: 끔';
+        if (!bgmEnabled) stopBGM();
+        else playBGM(gameState.isPlaying);
+    });
+    document.getElementById('btn-toggle-sfx').addEventListener('click', (e) => {
+        sfxEnabled = !sfxEnabled;
+        e.target.innerText = sfxEnabled ? '🔊 효과음: 켬' : '🔊 효과음: 끔';
+    });
+
+    // 효과음 출력 함수
+    function playTone(freq, type, duration, vol = 0.1) {
+        if (!sfxEnabled || audioCtx.state === 'suspended') return;
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        gain.gain.setValueAtTime(vol, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + duration);
+    }
+
+    const sfx = {
+        jump: () => playTone(300, 'sine', 0.2, 0.1),
+        change: () => playTone(600, 'triangle', 0.1, 0.05),
+        hit: () => playTone(150, 'square', 0.3, 0.15),
+        kill: () => playTone(800, 'square', 0.1, 0.08),
+        combo: (count) => playTone(400 + (count * 50), 'sine', 0.15, 0.1),
+        stage: () => { playTone(400, 'sine', 0.2); setTimeout(() => playTone(600, 'sine', 0.4), 200); },
+        gameover: () => { playTone(200, 'sawtooth', 0.5); setTimeout(() => playTone(100, 'sawtooth', 1.0), 300); }
+    };
+
+    // BGM 통합 관리 함수 (isGameplay 파라미터로 bgm/bgm2 전환)
+    function playBGM(isGameplay = false) {
+        if (!bgmEnabled) return;
+        stopBGM();
+        if (isGameplay) {
+            bgm2Audio.play().catch(e => console.log("인게임 배경음악 재생 대기 중"));
+        } else {
+            bgmAudio.play().catch(e => console.log("타이틀 배경음악 재생 대기 중"));
+        }
+    }
+
+    function stopBGM() {
+        bgmAudio.pause();
+        bgm2Audio.pause();
+    }
+
+    class Player {
+        constructor() {
+            this.w = 40; this.h = 40;
+            this.x = 50;
+            this.y = height - this.h - 20;
+            this.vy = 0;
+            this.gravity = 1.6;  
+            this.jumpForce = -20; 
+            this.state = 'WATER';
+            this.isInvincible = false;
+            this.invincibleTimer = 0;
+            this.animTimer = 0;
+        }
+
+        update(dt) {
+            this.vy += this.gravity;
+            this.y += this.vy;
+            const groundY = height - this.h - 20;
+
+            if (this.y > groundY) {
+                this.y = groundY;
+                this.vy = 0;
+            }
+
+            if (this.isInvincible) {
+                this.invincibleTimer -= dt;
+                if (this.invincibleTimer <= 0) this.isInvincible = false;
+            }
+            this.animTimer += dt;
+        }
+
+        jump() {
+            this.vy = this.jumpForce; 
+            sfx.jump();
+            for(let i=0; i<5; i++) {
+                particles.push(new Particle(this.x + this.w/2, this.y + this.h, STATES[this.state].color));
+            }
+        }
+
+        setState(newState) {
+            if (this.state !== newState) {
+                this.state = newState;
+                sfx.change();
+                document.querySelectorAll('#controls .btn-action').forEach(b => b.classList.remove('active', 'border-white'));
+                const btnMap = {'WATER': 'btn-water', 'ICE': 'btn-ice', 'VAPOR': 'btn-vapor'};
+                document.getElementById(btnMap[newState]).classList.add('active');
+            }
+        }
+
+        draw(ctx) {
+            if (this.isInvincible && Math.floor(this.animTimer / 100) % 2 === 0) return;
+            
+            let drawW = this.w; let drawH = this.h;
+            let drawY = this.y;
+            if (this.vy < 0) { drawW = this.w * 0.9; drawH = this.h * 1.1; }
+            else if (this.vy > 0) { drawW = this.w * 1.1; drawH = this.h * 0.9; drawY += this.h*0.1; }
+
+            // 플레이어 로컬 이미지 그리기
+            if (playerImg.complete && playerImg.naturalWidth > 0) {
+                ctx.drawImage(playerImg, this.x - 10, drawY - 10, drawW + 20, drawH + 20);
+            } else {
+                ctx.fillStyle = STATES[this.state].color;
+                ctx.beginPath();
+                ctx.roundRect(this.x, drawY, drawW, drawH, 10);
+                ctx.fill();
+            }
+
+            // 머리 위에 현재 상태 아이콘 표시
+            ctx.font = '18px Arial';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(STATES[this.state].emoji, this.x + this.w/2, drawY - 20);
+        }
+    }
+
+    class Enemy {
+        constructor(stage) {
+            this.stage = stage;
+            this.w = 40; this.h = 40;
+            this.x = width + 50;
+            this.markedForDeletion = false;
+            this.animTimer = Math.random() * 1000;
+            
+            this.setupType();
+            
+            // 높이 및 스폰 위치 완전 다이나믹 랜덤화
+            const groundY = height - this.h - 20;
+            const minY = 80; 
+            const roll = Math.random();
+            
+            if (roll < 0.20) {
+                // 바닥 영역 (20%)
+                this.y = groundY;
+            } else if (roll < 0.60) {
+                // 중간 공중 영역 (40%)
+                this.y = minY + (groundY - minY) * 0.4 + (Math.random() - 0.5) * 60;
+            } else {
+                // 높은 공중 영역 (40%)
+                this.y = minY + (groundY - minY) * 0.1 + Math.random() * ((groundY - minY) * 0.3);
+            }
+            this.baseY = this.y;
+            
+            // 다이나믹 속도 다양화 (0.6배 ~ 2.0배)
+            this.actualSpeed = this.config.speed * (0.6 + Math.random() * 1.4);
+
+            // Sine 궤적의 진폭 및 주파수 무작위성 변주
+            if (this.config.type === 'sine') {
+                this.config.amp = 50 + Math.random() * 80; 
+                this.config.freq = 0.003 + Math.random() * 0.009; 
+            }
+        }
+
+        setupType() {
+            // 화면에 이미 하트 아이템이 떠 있는지 체크
+            const hasHeartOnScreen = enemies.some(e => e.config && e.config.name === '하트 아이템');
+
+            // 체력이 2칸 이하로 남았고, 화면에 이미 하트가 없고, 한 게임당 하트 스폰 횟수가 3회 미만일 때 25% 확률로 생명 회복 하트 스폰
+            if (gameState && gameState.hp <= 2 && !hasHeartOnScreen && gameState.heartSpawnCount < 3 && Math.random() < 0.25) {
+                gameState.heartSpawnCount++; // 스폰 횟수 카운터 증가
+                this.config = {
+                    name: '하트 아이템',
+                    weak: 'ALL',
+                    speed: 1.0,
+                    type: 'linear',
+                    color: '#f43f5e',
+                    icon: '❤️',
+                    hint: '먹으면 체력 +1 회복!'
+                };
+                this.weakness = 'ALL';
+                this.color = '#f43f5e';
+                this.icon = '❤️';
+                return;
+            }
+
+            const types = [
+                [{ name: '얼음 슬라임', weak: 'WATER', speed: 1.2, type: 'linear', color: '#bae6fd', icon: '🧊', hint: '물로 녹여!' },
+                 { name: '냉기 박쥐', weak: 'VAPOR', speed: 1.4, type: 'sine', color: '#38bdf8', icon: '🦇', amp: 60, freq: 0.005, hint: '수증기로 흩어!' },
+                 { name: '꼬마 눈사람', weak: 'WATER', speed: 1.1, type: 'erratic', color: '#0ea5e9', icon: '☃️', hint: '물로 녹여!' }],
+                [{ name: '불꽃 도마뱀', weak: 'ICE', speed: 1.4, type: 'linear', color: '#ef4444', icon: '🦎', hint: '얼음으로 꺼!' },
+                 { name: '용암 불덩이', weak: 'ICE', speed: 1.2, type: 'sine', color: '#f97316', icon: '☄️', amp: 40, freq: 0.008, hint: '얼음으로 식혀!' },
+                 { name: '화산재 매', weak: 'WATER', speed: 1.7, type: 'linear', color: '#78716c', icon: '🦅', hint: '물로 가라앉혀!' }],
+                [{ name: '수증기 유령', weak: 'WATER', speed: 1.3, type: 'erratic', color: '#a7f3d0', icon: '👻', hint: '물로 응결시켜!' },
+                 { name: '이슬 요정', weak: 'VAPOR', speed: 1.1, type: 'sine', color: '#34d399', icon: '🧚', amp: 50, freq: 0.006, hint: '수증기로 증발시켜!' },
+                 { name: '먹구름 정령', weak: 'WATER', speed: 1.2, type: 'linear', color: '#6ee7b7', icon: '🌩️', hint: '물로 응결시켜!' }],
+                [{ name: '혼돈 정령', weak: 'RANDOM', speed: 1.4, type: 'erratic', color: '#c084fc', icon: '👿' },
+                 { name: '상태 로봇', weak: 'CYCLE', speed: 1.2, type: 'linear', color: '#94a3b8', icon: '🤖' },
+                 { name: '흑마법 불꽃', weak: 'ICE', speed: 1.5, type: 'sine', color: '#e879f9', icon: '🔥', amp: 80, freq: 0.004, hint: '얼음으로 꺼!' }]
+            ];
+
+            let stageIdx = Math.min(this.stage - 1, 3);
+            let pool;
+
+            // 1~3단계 진행 중에도 15% 확률로 4단계의 고난도 정예 몹이 튀어나와 변수 유도!
+            if (stageIdx < 3 && Math.random() < 0.15) {
+                pool = types[3];
+            } else {
+                pool = types[stageIdx];
+            }
+            
+            // 동일 약점 연속 3회 출현 차단 알고리즘 적용
+            let availablePool = pool;
+            if (window.weaknessStreakCount >= 2) {
+                availablePool = pool.filter(e => e.weak !== window.lastSpawnedWeakness);
+            }
+            if (availablePool.length === 0) {
+                availablePool = pool.filter(e => e.name !== window.lastSpawnedEnemy);
+            }
+            if (availablePool.length === 0) {
+                availablePool = pool;
+            }
+            
+            this.config = availablePool[Math.floor(Math.random() * availablePool.length)];
+            window.lastSpawnedEnemy = this.config.name;
+            
+            // 약점 연속 패턴 카운터 누적
+            let currentWeak = this.config.weak;
+            if (currentWeak === window.lastSpawnedWeakness) {
+                window.weaknessStreakCount++;
+            } else {
+                window.lastSpawnedWeakness = currentWeak;
+                window.weaknessStreakCount = 1;
+            }
+            
+            this.weakness = this.config.weak;
+            this.color = this.config.color;
+            this.icon = this.config.icon;
+
+            if (this.weakness === 'RANDOM') {
+                const wKeys = ['WATER', 'ICE', 'VAPOR'];
+                this.actualWeakness = wKeys[Math.floor(Math.random() * wKeys.length)];
+                this.revealTimer = 2000;
+            }
+            if (this.weakness === 'CYCLE') {
+                this.cycleKeys = ['WATER', 'ICE', 'VAPOR'];
+                this.cycleIdx = 0;
+                this.cycleTimer = 0;
+            }
+        }
+
+        getActualWeakness() {
+            if (this.weakness === 'RANDOM') return this.actualWeakness;
+            if (this.weakness === 'CYCLE') return this.cycleKeys[this.cycleIdx];
+            return this.weakness;
+        }
+
+        getHintText() {
+            if (this.weakness === 'RANDOM') return this.revealTimer > 0 ? "???" : STATES[this.actualWeakness].name + "(으)로 공격!";
+            if (this.weakness === 'CYCLE') {
+                const weakName = STATES[this.cycleKeys[this.cycleIdx]].name;
+                const actions = {'물':'녹여', '얼음':'식혀', '수증기':'흩어'};
+                return `${weakName}(으)로 ${actions[weakName]}!`;
+            }
+            return this.config.hint;
+        }
+
+        getDisplayWeaknessColor() {
+            if (this.weakness === 'ALL') return '#f43f5e'; // 하트 아이템의 핑크/레드 색상 대응
+            if (this.weakness === 'RANDOM' && this.revealTimer > 0) return '#9ca3af'; 
+            if (this.weakness === 'RANDOM') return STATES[this.actualWeakness].color;
+            if (this.weakness === 'CYCLE') return STATES[this.cycleKeys[this.cycleIdx]].color;
+            return STATES[this.weakness].color;
+        }
+
+        update(dt) {
+            this.animTimer += dt;
+            const s = gameState.speed * this.actualSpeed;
+            const groundY = height - this.h - 20;
+            
+            if (this.config.type === 'sine') {
+                this.x -= s; 
+                this.y = this.baseY + Math.sin(this.animTimer * this.config.freq) * (this.config.amp || 50);
+                if (this.y > groundY) this.y = groundY; 
+            } else if (this.config.type === 'erratic') {
+                this.x -= s;
+                if (Math.random() < 0.05) this.baseY += (Math.random() - 0.5) * 60;
+                if (this.baseY > groundY) this.baseY = groundY; 
+                if (this.baseY < 100) this.baseY = 100;
+                this.y += (this.baseY - this.y) * 0.1;
+            } else {
+                this.x -= s;
+            }
+
+            if (this.weakness === 'RANDOM' && this.revealTimer > 0) this.revealTimer -= dt;
+            if (this.weakness === 'CYCLE') {
+                this.cycleTimer += dt;
+                if (this.cycleTimer > 2000) {
+                    this.cycleTimer = 0;
+                    this.cycleIdx = (this.cycleIdx + 1) % 3;
+                }
+            }
+            if (this.x + this.w < 0) this.markedForDeletion = true;
+        }
+
+        draw(ctx) {
+            // 원형 배경 제거 후 로컬 이미지 파일 그리기 (하트 아이템은 예쁜 글로우 하트 렌더링)
+            const img = enemyImages[this.config.name];
+            if (this.config.name === '하트 아이템') {
+                ctx.save();
+                ctx.shadowColor = '#f43f5e';
+                ctx.shadowBlur = 15;
+                ctx.font = '32px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText('❤️', this.x + this.w/2, this.y + this.h/2);
+                ctx.restore();
+            } else if (img && img.complete && img.naturalWidth > 0) {
+                ctx.drawImage(img, this.x - 10, this.y - 10, this.w + 20, this.h + 20);
+            } else {
+                ctx.font = '24px Arial';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(this.icon, this.x + this.w/2, this.y + this.h/2);
+            }
+
+            // 힌트 말풍선(약점 알림) 그리기
+            const hint = this.getHintText();
+            const dColor = this.getDisplayWeaknessColor();
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.strokeStyle = dColor;
+            ctx.lineWidth = 2;
+            ctx.font = '12px Jua';
+            const tWidth = ctx.measureText(hint).width + 10;
+            
+            const bx = this.x + this.w/2;
+            const by = this.y - 15;
+
+            ctx.beginPath();
+            ctx.roundRect(bx - tWidth/2, by - 20, tWidth, 20, 5);
+            ctx.fill();
+            ctx.stroke();
+
+            ctx.beginPath();
+            ctx.moveTo(bx - 5, by);
+            ctx.lineTo(bx + 5, by);
+            ctx.lineTo(bx, by + 5);
+            ctx.fill();
+            ctx.stroke();
+            
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
+            ctx.beginPath();
+            ctx.moveTo(bx - 4, by - 1);
+            ctx.lineTo(bx + 4, by - 1);
+            ctx.lineTo(bx, by + 4);
+            ctx.fill();
+
+            ctx.fillStyle = '#000';
+            ctx.fillText(hint, bx, by - 10);
+            
+            // 이름 태그 추가
+            ctx.font = 'bold 14px Jua';
+            ctx.fillStyle = this.config.name === '하트 아이템' ? '#f43f5e' : '#facc15';
+            ctx.strokeStyle = '#000';
+            ctx.lineWidth = 3;
+            ctx.strokeText(this.config.name, bx, by - 35);
+            ctx.fillText(this.config.name, bx, by - 35);
+        }
+    }
+
+    class Particle {
+        constructor(x, y, color) {
+            this.x = x; this.y = y; this.color = color;
+            this.vx = (Math.random() - 0.5) * 10;
+            this.vy = (Math.random() - 0.5) * 10;
+            this.life = 1.0;
+            this.decay = 0.02 + Math.random() * 0.03;
+            this.size = Math.random() * 6 + 2;
+        }
+        update() {
+            this.x += this.vx; this.y += this.vy;
+            this.life -= this.decay;
+        }
+        draw(ctx) {
+            ctx.globalAlpha = Math.max(0, this.life);
+            ctx.fillStyle = this.color;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
+    class FloatingText {
+        constructor(x, y, text, color, isBig = false) {
+            this.x = x; this.y = y; this.text = text; this.color = color;
+            this.life = 1.0; this.vy = -2; this.isBig = isBig;
+        }
+        update() { this.y += this.vy; this.life -= 0.02; }
+        draw(ctx) {
+            ctx.globalAlpha = Math.max(0, this.life);
+            ctx.fillStyle = this.color;
+            ctx.font = this.isBig ? 'bold 36px Jua' : 'bold 24px Jua';
+            ctx.textAlign = 'center';
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+            ctx.strokeText(this.text, this.x, this.y);
+            ctx.fillText(this.text, this.x, this.y);
+            ctx.globalAlpha = 1.0;
+        }
+    }
+
+    function drawBackground(dt) {
+        const currentStage = Math.min(gameState.stage, 4);
+        const img = bgImages[currentStage];
+
+        // 각 단계별 로컬 배경 이미지 무한 스크롤 처리
+        if (img && img.complete && img.naturalWidth > 0) {
+            const imgAspect = img.naturalWidth / img.naturalHeight;
+            let drawWidth = height * imgAspect;
+            if (isNaN(drawWidth) || drawWidth === 0) drawWidth = width;
+
+            gameState.bgX -= (gameState.speed * 0.3); 
+            if (gameState.bgX <= -drawWidth) {
+                gameState.bgX += drawWidth;
+            }
+
+            ctx.drawImage(img, gameState.bgX, 0, drawWidth, height);
+            ctx.drawImage(img, gameState.bgX + drawWidth, 0, drawWidth, height);
+            
+            if (gameState.bgX + drawWidth * 2 < width) {
+                ctx.drawImage(img, gameState.bgX + drawWidth * 2, 0, drawWidth, height);
+            }
+        } else {
+            const colors = STAGE_COLORS[currentStage - 1];
+            const grad = ctx.createLinearGradient(0, 0, 0, height);
+            grad.addColorStop(0, colors[0]);
+            grad.addColorStop(1, colors[1]);
+            ctx.fillStyle = grad;
+            ctx.fillRect(0, 0, width, height);
+        }
+
+        ctx.fillStyle = 'rgba(0,0,0,0.5)';
+        ctx.fillRect(0, height - 20, width, 20);
+    }
+
+    function checkCollision(p, e) {
+        return p.x < e.x + e.w && p.x + p.w > e.x && p.y < e.y + e.h && p.y + p.h > e.y;
+    }
+
+    function showComboEffect() {
+        const comboEl = document.getElementById('combo-display');
+        if (gameState.combo >= 2) {
+            comboEl.innerText = `${gameState.combo} 연속 처치!`;
+            comboEl.classList.remove('hidden');
+            comboEl.classList.remove('animate-bounce');
+            void comboEl.offsetWidth; 
+            comboEl.classList.add('animate-bounce');
+        } else {
+            comboEl.classList.add('hidden');
+        }
+    }
+
+    function switchScene(sceneId) {
+        document.querySelectorAll('.scene').forEach(s => s.classList.remove('active'));
+        if(sceneId) document.getElementById(sceneId).classList.add('active');
+    }
+
+    function initGame() {
+        player = new Player();
+        enemies = [];
+        particles = [];
+        floatingTexts = [];
+        gameState = {
+            isPlaying: true, score: 0, combo: 0, hp: GAME_CONFIG.maxHp,
+            stage: 1, time: 0, speed: GAME_CONFIG.baseSpeed,
+            lastSpawnTime: 0, currentSpawnRate: GAME_CONFIG.spawnRate,
+            nextSpawnDelay: GAME_CONFIG.spawnRate,
+            bgX: 0,
+            heartSpawnCount: 0 // 게임 새로 시작할 때 하트 스폰 제한 초기화
+        };
+        
+        // 가드 초기화
+        window.lastSpawnedEnemy = '';
+        window.lastSpawnedWeakness = '';
+        window.weaknessStreakCount = 0;
+
+        updateHUD();
+        document.getElementById('controls').classList.remove('hidden');
+        document.getElementById('hud').style.pointerEvents = 'auto';
+        switchScene(null);
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        
+        playBGM(true); // 게임 시작 시 경쾌한 인게임용 BGM(bgm2.mp3)으로 변경 재생
+        lastTime = performance.now();
+        reqId = requestAnimationFrame(gameLoop);
+    }
+
+    function updateHUD() {
+        document.getElementById('score-display').innerText = gameState.score;
+        document.getElementById('hp-display').innerText = '❤️'.repeat(gameState.hp) + '🖤'.repeat(GAME_CONFIG.maxHp - gameState.hp);
+        const stageNames = ['얼음 동굴', '증기 화산', '안개 숲', '열 마법사의 성'];
+        document.getElementById('stage-text').innerText = `${gameState.stage}단계: ${stageNames[Math.min(gameState.stage-1, 3)]}`;
+    }
+
+    function gameOver(isClear = false) {
+        gameState.isPlaying = false;
+        cancelAnimationFrame(reqId);
+        stopBGM();
+        
+        // 게임 종료 후 다시 타이틀용 BGM(bgm.mp3)을 틀어 자연스러운 환경 유도
+        playBGM(false);
+        
+        const titleEl = document.getElementById('gameover-title');
+        const descEl = document.getElementById('gameover-desc');
+        
+        if (isClear) {
+            sfx.stage();
+            titleEl.innerText = "✨ 게임 클리어! ✨";
+            titleEl.className = "text-5xl text-blue-400 mb-4 font-bold text-shadow";
+            descEl.innerHTML = "\"대단해요! 열 마법사를 물리쳤어요!<br>당신은 진정한 <span class='text-blue-300 font-bold'>물의 상태 변화 마스터</span>입니다!<br>물 왕국에 다시 평화가 찾아왔어요.\"";
+        } else {
+            sfx.gameover();
+            titleEl.innerText = "게임 종료";
+            titleEl.className = "text-6xl text-red-500 mb-4 font-bold text-shadow";
+            descEl.innerHTML = "\"탐험대원이 쓰러졌어요...<br>하지만 왕국은 아직 포기하지 않았어요!<br>다시 도전해서 물 왕국을 구해주세요!\"";
+        }
+        
+        document.getElementById('controls').classList.add('hidden');
+        document.getElementById('hud').style.pointerEvents = 'none';
+        
+        const highScore = parseInt(localStorage.getItem('waterRunHighScore') || '0');
+        document.getElementById('result-score').innerText = gameState.score;
+        document.getElementById('result-stage').innerText = gameState.stage;
+        
+        if (gameState.score > highScore) {
+            localStorage.setItem('waterRunHighScore', gameState.score);
+            document.getElementById('result-highscore').innerText = gameState.score;
+            document.getElementById('new-record').classList.remove('hidden');
+        } else {
+            document.getElementById('result-highscore').innerText = highScore;
+            document.getElementById('new-record').classList.add('hidden');
+        }
+        switchScene('scene-gameover');
+    }
+
+    function nextStage() {
+        gameState.stage++;
+        gameState.speed *= GAME_CONFIG.speedMultiplier;
+        gameState.currentSpawnRate = Math.max(GAME_CONFIG.minSpawnRate, gameState.currentSpawnRate * 0.85);
+        if (gameState.hp < GAME_CONFIG.maxHp) gameState.hp++;
+        updateHUD();
+        sfx.stage();
+        
+        const stMsg = document.getElementById('stage-transition');
+        const stageNames = ['얼음 동굴', '증기 화산', '안개 숲', '열 마법사의 성!'];
+        document.getElementById('stage-transition-text').innerText = `${gameState.stage}단계\n${stageNames[Math.min(gameState.stage-1, 3)]}`;
+        stMsg.classList.add('active');
+        setTimeout(() => stMsg.classList.remove('active'), 1500);
+    }
+
+    function gameLoop(timestamp) {
+        if (!gameState.isPlaying) return;
+        const dt = timestamp - lastTime;
+        lastTime = timestamp;
+
+        gameState.time += dt;
+        if (gameState.time > GAME_CONFIG.stageDuration * gameState.stage) {
+            if (gameState.stage >= 4) {
+                gameOver(true);
+                return;
+            } else {
+                nextStage();
+            }
+        }
+
+        ctx.clearRect(0, 0, width, height);
+        drawBackground(dt);
+
+        player.update(dt);
+        player.draw(ctx);
+
+        if (timestamp - gameState.lastSpawnTime > gameState.nextSpawnDelay) {
+            enemies.push(new Enemy(gameState.stage));
+            gameState.lastSpawnTime = timestamp;
+            gameState.nextSpawnDelay = gameState.currentSpawnRate * (0.3 + Math.random() * 1.5);
+        }
+
+        for (let i = enemies.length - 1; i >= 0; i--) {
+            const enemy = enemies[i];
+            enemy.update(dt);
+            
+            if (!enemy.markedForDeletion && checkCollision(player, enemy)) {
+                // 하트 아이템 충돌 처리 (플레이어가 무적 상태여도 안전하게 회복 획득 가능)
+                if (enemy.config.name === '하트 아이템') {
+                    if (gameState.hp < GAME_CONFIG.maxHp) {
+                        gameState.hp++;
+                        updateHUD();
+                    }
+                    sfx.kill(); // 획득 사운드 재생
+                    for(let k=0; k<15; k++) particles.push(new Particle(enemy.x+enemy.w/2, enemy.y+enemy.h/2, '#f43f5e'));
+                    floatingTexts.push(new FloatingText(enemy.x, enemy.y, `HP +1 ❤️`, '#f43f5e', true));
+                    enemy.markedForDeletion = true;
+                } else if (!player.isInvincible) {
+                    // 일반 장애물 충돌 처리
+                    const actualWeakness = enemy.getActualWeakness();
+                    
+                    if (player.state === actualWeakness) {
+                        let gainedScore = 10;
+                        if (enemy.config.name === '혼돈 정령') gainedScore = 50; 
+                        else if (enemy.stage === 4) gainedScore = 20;
+                        
+                        gameState.combo++;
+                        if (gameState.combo >= 5) gainedScore *= 3;
+                        else if (gameState.combo >= 3) gainedScore *= 2;
+                        
+                        gameState.score += gainedScore;
+                        sfx.kill();
+                        if(gameState.combo > 1) sfx.combo(gameState.combo);
+                        
+                        for(let k=0; k<15; k++) particles.push(new Particle(enemy.x+enemy.w/2, enemy.y+enemy.h/2, STATES[actualWeakness].color));
+                        floatingTexts.push(new FloatingText(enemy.x, enemy.y, `+${gainedScore}`, '#4ade80', gameState.combo >= 3));
+                        showComboEffect();
+                        updateHUD();
+                        enemy.markedForDeletion = true;
+                    } else {
+                        gameState.hp--;
+                        gameState.combo = 0;
+                        player.isInvincible = true;
+                        player.invincibleTimer = 1500;
+                        sfx.hit();
+                        showComboEffect();
+                        updateHUD();
+                        for(let k=0; k<10; k++) particles.push(new Particle(player.x+player.w/2, player.y+player.h/2, '#ef4444'));
+                        if (gameState.hp <= 0) { gameOver(); return; }
+                    }
+                }
+            }
+            
+            enemy.draw(ctx);
+            if (enemy.markedForDeletion) enemies.splice(i, 1);
+        }
+
+        for (let i = particles.length - 1; i >= 0; i--) {
+            particles[i].update();
+            particles[i].draw(ctx);
+            if (particles[i].life <= 0) particles.splice(i, 1);
+        }
+        for (let i = floatingTexts.length - 1; i >= 0; i--) {
+            floatingTexts[i].update();
+            floatingTexts[i].draw(ctx);
+            if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+        }
+
+        reqId = requestAnimationFrame(gameLoop);
+    }
+
+    // 네비게이션 제어
+    document.getElementById('btn-to-howto').addEventListener('click', () => switchScene('scene-howto'));
+    document.getElementById('btn-to-encyclopedia').addEventListener('click', () => switchScene('scene-encyclopedia'));
+    document.getElementById('btn-start-game').addEventListener('click', initGame);
+    document.getElementById('btn-restart').addEventListener('click', initGame);
+
+    // 터치 및 모바일 조작계 바인딩
+    document.getElementById('btn-jump').addEventListener('pointerdown', (e) => { e.preventDefault(); if(gameState.isPlaying) player.jump(); });
+    document.getElementById('btn-water').addEventListener('pointerdown', (e) => { e.preventDefault(); if(gameState.isPlaying) player.setState('WATER'); });
+    document.getElementById('btn-ice').addEventListener('pointerdown', (e) => { e.preventDefault(); if(gameState.isPlaying) player.setState('ICE'); });
+    document.getElementById('btn-vapor').addEventListener('pointerdown', (e) => { e.preventDefault(); if(gameState.isPlaying) player.setState('VAPOR'); });
+
+    // PC 키보드 단축키
+    window.addEventListener('keydown', (e) => {
+        if (!gameState.isPlaying) return;
+        if (e.code === 'Space') { e.preventDefault(); player.jump(); }
+        if (e.key === '1') player.setState('WATER');
+        if (e.key === '2') player.setState('ICE');
+        if (e.key === '3') player.setState('VAPOR');
+    });
+
+    window.addEventListener('contextmenu', e => e.preventDefault());
+
+</script>
+</body>
+</html>
