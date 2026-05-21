@@ -21,12 +21,10 @@
 
         #game-container {
             position: relative;
-            max-width: 800px;
-            margin: 0 auto;
+            width: 100vw;
             height: 100svh;
             background: #000;
             overflow: hidden;
-            box-shadow: 0 0 20px rgba(0,0,0,0.5);
         }
 
         canvas {
@@ -35,6 +33,7 @@
             height: 100%;
         }
 
+        /* 듀얼 레이어 반응형 씬(Scene) 구조 적용 */
         .scene {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
@@ -48,11 +47,32 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.3s ease;
+            overflow: hidden; /* 블러가 삐져나가지 않도록 처리 */
         }
 
         .scene.active {
             opacity: 1;
             pointer-events: auto;
+        }
+
+        /* 여백을 고급스럽게 채워줄 블러 배경 레이어 */
+        .scene-bg-blur {
+            position: absolute;
+            top: -5%; left: -5%; right: -5%; bottom: -5%; /* 경계선 블러 처리 방지용 확장 */
+            background-size: cover;
+            background-position: center;
+            filter: blur(25px) brightness(0.35);
+            z-index: 1;
+        }
+
+        /* 원본 이미지가 위아래 잘림 없이 100% 들어가는 메인 레이어 */
+        .scene-content {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-size: contain; /* cover 대신 contain 적용으로 절대 잘리지 않음 */
+            background-position: center;
+            background-repeat: no-repeat;
+            z-index: 2;
         }
 
         #hud {
@@ -72,8 +92,8 @@
 
         #controls {
             position: absolute;
-            bottom: 20px; left: 0; right: 0;
-            padding: 0 20px;
+            bottom: 25px; left: 0; right: 0;
+            padding: 0 40px;
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
@@ -81,11 +101,11 @@
         }
 
         .btn-action {
-            width: 70px;
-            height: 70px;
+            width: 75px;
+            height: 75px;
             border-radius: 50%;
             border: 3px solid rgba(255,255,255,0.5);
-            background: rgba(0,0,0,0.5);
+            background: rgba(0,0,0,0.6);
             color: white;
             font-size: 32px;
             display: flex;
@@ -94,7 +114,7 @@
             pointer-events: auto;
             cursor: pointer;
             transition: all 0.1s;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
             font-family: 'Jua', sans-serif;
         }
 
@@ -104,15 +124,15 @@
 
         .btn-action.active {
             border-color: #fff;
-            background: rgba(255,255,255,0.2);
-            box-shadow: 0 0 15px currentColor;
+            background: rgba(255,255,255,0.25);
+            box-shadow: 0 0 18px currentColor;
             transform: scale(1.1);
         }
 
         #btn-jump {
-            width: 80px; height: 80px;
-            font-size: 24px;
-            background: rgba(255, 255, 255, 0.2);
+            width: 85px; height: 85px;
+            font-size: 26px;
+            background: rgba(255, 255, 255, 0.25);
         }
 
         .audio-controls { pointer-events: auto; }
@@ -129,8 +149,8 @@
 
         /* 쿠키런 스타일의 고시인성 입체 버튼 CSS */
         .btn-casual {
-            padding: 6px 28px;
-            font-size: 18px;
+            padding: 8px 36px;
+            font-size: 20px;
             font-weight: bold;
             font-family: 'Jua', sans-serif;
             color: #ffffff;
@@ -141,10 +161,10 @@
             letter-spacing: 1px;
             text-shadow: 1px 1px 0px rgba(0,0,0,0.5), -1px -1px 0px rgba(0,0,0,0.5);
             position: absolute;
-            bottom: 12px;
+            bottom: 30px;
+            z-index: 10; /* 버튼이 이미지 위로 확실히 올라오도록 Z-index 부여 */
         }
 
-        /* 파란색 버튼 (조작 방법 보기 / 입장하기) */
         .btn-casual.blue {
             background: linear-gradient(to bottom, #60a5fa, #2563eb);
             box-shadow: 0 8px 0 #1e3a8a, 0 15px 20px rgba(0,0,0,0.5);
@@ -154,7 +174,6 @@
             box-shadow: 0 0px 0 #1e3a8a, 0 5px 10px rgba(0,0,0,0.5);
         }
 
-        /* 초록색 버튼 (적 도감 보기) */
         .btn-casual.green {
             background: linear-gradient(to bottom, #4ade80, #16a34a);
             box-shadow: 0 8px 0 #14532d, 0 15px 20px rgba(0,0,0,0.5);
@@ -164,7 +183,6 @@
             box-shadow: 0 0px 0 #14532d, 0 5px 10px rgba(0,0,0,0.5);
         }
 
-        /* 노란/주황색 버튼 (게임 시작) */
         .btn-casual.yellow {
             background: linear-gradient(to bottom, #facc15, #ea580c);
             box-shadow: 0 8px 0 #9a3412, 0 15px 20px rgba(0,0,0,0.5);
@@ -174,7 +192,6 @@
             box-shadow: 0 0px 0 #9a3412, 0 5px 10px rgba(0,0,0,0.5);
         }
 
-        /* 기존 기본 버튼 (게임 오버 화면 등에 사용) */
         .btn-primary {
             border-radius: 9999px;
             border: 4px solid white;
@@ -182,6 +199,7 @@
             font-family: 'Jua', sans-serif;
             transition: transform 0.2s;
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            z-index: 10;
         }
     </style>
 </head>
@@ -201,11 +219,6 @@
         </div>
     </div>
 
-    <div class="absolute top-4 right-4 z-[100] flex flex-col items-end audio-controls space-y-2 pointer-events-auto">
-        <button id="btn-toggle-bgm" class="audio-btn">🎵 배경음악: 켬</button>
-        <button id="btn-toggle-sfx" class="audio-btn">🔊 효과음: 켬</button>
-    </div>
-
     <div id="controls" class="hidden">
         <button id="btn-jump" class="btn-action shadow-lg text-white">점프</button>
         <div class="flex space-x-2">
@@ -215,29 +228,42 @@
         </div>
     </div>
 
-    <div id="scene-init" class="scene active" style="background: url('image21.png') no-repeat center center; background-size: cover; justify-content: flex-end; padding-bottom: 25px;">
+    <!-- 0. 오디오 초기화 대기 화면 -->
+    <div id="scene-init" class="scene active">
+        <div class="scene-bg-blur" style="background-image: url('image21.png');"></div>
+        <div class="scene-content" style="background-image: url('image21.png');"></div>
         <button id="btn-init-audio" class="btn-casual blue">입장하기</button>
     </div>
 
-    <div id="scene-title" class="scene" style="background: url('image1.png') no-repeat center center; background-size: cover;">
+    <!-- 1. 타이틀 화면 -->
+    <div id="scene-title" class="scene">
+        <div class="scene-bg-blur" style="background-image: url('image1.png');"></div>
+        <div class="scene-content" style="background-image: url('image1.png');"></div>
         <button id="btn-to-howto" class="btn-casual blue">조작 방법 보기</button>
     </div>
 
-    <div id="scene-howto" class="scene" style="background: url('image2.png') no-repeat center center; background-size: cover;">
+    <!-- 2. 조작 방법 화면 -->
+    <div id="scene-howto" class="scene">
+        <div class="scene-bg-blur" style="background-image: url('image2.png');"></div>
+        <div class="scene-content" style="background-image: url('image2.png');"></div>
         <button id="btn-to-encyclopedia" class="btn-casual green">적 도감 보기</button>
     </div>
 
-    <div id="scene-encyclopedia" class="scene" style="background: url('image3.png') no-repeat center center; background-size: cover;">
+    <!-- 3. 적 도감 화면 -->
+    <div id="scene-encyclopedia" class="scene">
+        <div class="scene-bg-blur" style="background-image: url('image3.png');"></div>
+        <div class="scene-content" style="background-image: url('image3.png');"></div>
         <button id="btn-start-game" class="btn-casual yellow">게임 시작!</button>
     </div>
 
+    <!-- 4. 게임 오버 화면 -->
     <div id="scene-gameover" class="scene">
-        <h2 id="gameover-title" class="text-6xl text-red-500 mb-4 font-bold text-shadow">게임 종료</h2>
-        <p id="gameover-desc" class="text-xl mb-6 text-center max-w-md text-gray-200">
+        <h2 id="gameover-title" class="text-6xl text-red-500 mb-4 font-bold text-shadow z-10">게임 종료</h2>
+        <p id="gameover-desc" class="text-xl mb-6 text-center max-w-md text-gray-200 z-10">
             "탐험대원이 쓰러졌어요...<br>하지만 왕국은 아직 포기하지 않았어요!<br>다시 도전해서 물 왕국을 구해주세요!"
         </p>
         
-        <div class="bg-gray-800 bg-opacity-80 p-6 rounded-2xl mb-8 border border-gray-600 min-w-[250px] text-center">
+        <div class="bg-gray-800 bg-opacity-80 p-6 rounded-2xl mb-8 border border-gray-600 min-w-[250px] text-center z-10">
             <div class="text-xl text-gray-300 mb-2">최종 점수: <span id="result-score" class="text-3xl text-white font-bold">0</span></div>
             <div class="text-lg text-yellow-400 mb-2">최고 점수: <span id="result-highscore" class="text-2xl font-bold">0</span></div>
             <div class="text-md text-gray-400">도달 단계: <span id="result-stage">1</span>단계</div>
@@ -249,6 +275,12 @@
     
     <div id="stage-transition" class="scene bg-black bg-opacity-50" style="transition: opacity 0.5s ease;">
         <h2 id="stage-transition-text" class="text-5xl text-white font-bold text-shadow-lg tracking-widest text-center"></h2>
+    </div>
+
+    <!-- Global Audio Controls (모든 화면 위에 항상 띄우기 위해 최하단 배치 및 z-index 9999 설정) -->
+    <div class="absolute top-4 right-4 flex flex-col items-end audio-controls space-y-2 pointer-events-auto" style="z-index: 9999;">
+        <button id="btn-toggle-bgm" class="audio-btn">🎵 배경음악: 켬</button>
+        <button id="btn-toggle-sfx" class="audio-btn">🔊 효과음: 켬</button>
     </div>
 </div>
 
@@ -288,121 +320,86 @@
         ['#1e1b4b', '#4c1d95']  // Stage 4 (Castle)
     ];
 
-    // 플레이어 캐릭터 이미지 로드
+    // 이미지 파일 로드
     const playerImg = new Image();
     playerImg.src = 'image8.png';
 
-    // 단계별 배경 이미지 로드
-    const bgImages = {
-        1: new Image(),
-        2: new Image(),
-        3: new Image(),
-        4: new Image()
-    };
+    const bgImages = { 1: new Image(), 2: new Image(), 3: new Image(), 4: new Image() };
     bgImages[1].src = 'image4.png';
     bgImages[2].src = 'image5.png';
     bgImages[3].src = 'image6.png';
     bgImages[4].src = 'image7.png';
 
-    // 적 캐릭터 이미지 전역 로드
     const enemyImages = {};
     const enemyImageSrcs = {
-        '얼음 슬라임': 'image9.png',
-        '냉기 박쥐': 'image10.png',
-        '꼬마 눈사람': 'image11.png',
-        '불꽃 도마뱀': 'image12.png',
-        '용암 불덩이': 'image13.png',
-        '화산재 매': 'image14.png',
-        '수증기 유령': 'image15.png',
-        '이슬 요정': 'image16.png',
-        '먹구름 정령': 'image17.png',
-        '혼돈 정령': 'image18.png',
-        '상태 로봇': 'image19.png',
-        '흑마법 불꽃': 'image20.png'
+        '얼음 슬라임': 'image9.png', '냉기 박쥐': 'image10.png', '꼬마 눈사람': 'image11.png',
+        '불꽃 도마뱀': 'image12.png', '용암 불덩이': 'image13.png', '화산재 매': 'image14.png',
+        '수증기 유령': 'image15.png', '이슬 요정': 'image16.png', '먹구름 정령': 'image17.png',
+        '혼돈 정령': 'image18.png', '상태 로봇': 'image19.png', '흑마법 불꽃': 'image20.png'
     };
-    
     for (const [name, src] of Object.entries(enemyImageSrcs)) {
-        const img = new Image();
-        img.src = src;
-        enemyImages[name] = img;
+        const img = new Image(); img.src = src; enemyImages[name] = img;
     }
 
     let gameState = {
-        isPlaying: false,
-        score: 0,
-        combo: 0,
-        hp: GAME_CONFIG.maxHp,
-        stage: 1,
-        time: 0,
-        speed: GAME_CONFIG.baseSpeed,
-        lastSpawnTime: 0,
-        currentSpawnRate: GAME_CONFIG.spawnRate,
-        nextSpawnDelay: 0,
-        bgX: 0,
-        heartSpawnCount: 0 
+        isPlaying: false, score: 0, combo: 0, hp: GAME_CONFIG.maxHp,
+        stage: 1, time: 0, speed: GAME_CONFIG.baseSpeed,
+        lastSpawnTime: 0, currentSpawnRate: GAME_CONFIG.spawnRate,
+        nextSpawnDelay: 0, bgX: 0, heartSpawnCount: 0 
     };
 
     let player, enemies = [], particles = [], floatingTexts = [];
-    let lastTime = 0;
-    let reqId;
+    let lastTime = 0; let reqId;
     
-    // 상태 및 몬스터 중복 가드 변수
     window.lastSpawnedEnemy = ''; 
     window.lastSpawnedWeakness = '';
     window.weaknessStreakCount = 0;
 
-    // 오디오 컨텍스트 및 로컬 배경음악 2개 세트 로딩
     const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-    
-    const bgmAudio = new Audio('bgm.mp3');
-    bgmAudio.loop = true;
-    bgmAudio.volume = 0.3;
+    const bgmAudio = new Audio('bgm.mp3'); bgmAudio.loop = true; bgmAudio.volume = 0.3;
+    const bgm2Audio = new Audio('bgm2.mp3'); bgm2Audio.loop = true; bgm2Audio.volume = 0.3;
 
-    const bgm2Audio = new Audio('bgm2.mp3');
-    bgm2Audio.loop = true;
-    bgm2Audio.volume = 0.3;
+    let bgmEnabled = true; let sfxEnabled = true; let isAudioInit = false;
 
-    let bgmEnabled = true;
-    let sfxEnabled = true;
-    let isAudioInit = false;
-
-    // 입장 버튼 클릭 시 오디오 권한 획득
     document.getElementById('btn-init-audio').addEventListener('click', () => {
         if (!isAudioInit) {
             isAudioInit = true;
             if (audioCtx.state === 'suspended') audioCtx.resume();
-            if (bgmEnabled) {
-                playBGM(false); 
-            }
+            if (bgmEnabled) playBGM(false); 
         }
         switchScene('scene-title');
     });
 
-    // 오디오 UI 조작 설정
+    // 버튼 클릭 시 오디오 초기화 로직을 추가하여 처음부터 음소거/활성화 기능 보장
     document.getElementById('btn-toggle-bgm').addEventListener('click', (e) => {
+        if (!isAudioInit) {
+            isAudioInit = true;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+        }
         bgmEnabled = !bgmEnabled;
         e.target.innerText = bgmEnabled ? '🎵 배경음악: 켬' : '🎵 배경음악: 끔';
         if (!bgmEnabled) stopBGM();
         else playBGM(gameState.isPlaying);
     });
+    
     document.getElementById('btn-toggle-sfx').addEventListener('click', (e) => {
+        if (!isAudioInit) {
+            isAudioInit = true;
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            if (bgmEnabled && !gameState.isPlaying) playBGM(false);
+        }
         sfxEnabled = !sfxEnabled;
         e.target.innerText = sfxEnabled ? '🔊 효과음: 켬' : '🔊 효과음: 끔';
     });
 
-    // 효과음 출력 함수
     function playTone(freq, type, duration, vol = 0.1) {
         if (!sfxEnabled || audioCtx.state === 'suspended') return;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        osc.type = type;
-        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+        const osc = audioCtx.createOscillator(); const gain = audioCtx.createGain();
+        osc.type = type; osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
         gain.gain.setValueAtTime(vol, audioCtx.currentTime);
         gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + duration);
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
-        osc.start();
-        osc.stop(audioCtx.currentTime + duration);
+        osc.connect(gain); gain.connect(audioCtx.destination);
+        osc.start(); osc.stop(audioCtx.currentTime + duration);
     }
 
     const sfx = {
@@ -418,23 +415,17 @@
     function playBGM(isGameplay = false) {
         if (!bgmEnabled) return;
         stopBGM();
-        if (isGameplay) {
-            bgm2Audio.play().catch(e => console.log("인게임 배경음악 재생 대기 중"));
-        } else {
-            bgmAudio.play().catch(e => console.log("타이틀 배경음악 재생 대기 중"));
-        }
+        if (isGameplay) bgm2Audio.play().catch(e => console.log("인게임 BGM 대기"));
+        else bgmAudio.play().catch(e => console.log("타이틀 BGM 대기"));
     }
 
-    function stopBGM() {
-        bgmAudio.pause();
-        bgm2Audio.pause();
-    }
+    function stopBGM() { bgmAudio.pause(); bgm2Audio.pause(); }
 
     class Player {
         constructor() {
-            this.w = 40; this.h = 40;
-            this.x = 50;
-            this.y = height - this.h - 20;
+            this.w = 46; this.h = 46; // 고정된 밸런스 크기
+            this.x = 60;
+            this.y = height - this.h - 30;
             this.vy = 0;
             this.gravity = 0.7;       
             this.fallGravity = 1.6;   
@@ -451,15 +442,11 @@
             const safeScale = Math.min(timeScale, 3); 
 
             const currentGravity = this.vy < 0 ? this.gravity : this.fallGravity;
-
             this.vy += currentGravity * safeScale;
             this.y += this.vy * safeScale;
-            const groundY = height - this.h - 20;
-
-            if (this.y > groundY) {
-                this.y = groundY;
-                this.vy = 0;
-            }
+            
+            const groundY = height - this.h - 30;
+            if (this.y > groundY) { this.y = groundY; this.vy = 0; }
 
             if (this.isInvincible) {
                 this.invincibleTimer -= actualDt;
@@ -469,8 +456,7 @@
         }
 
         jump() {
-            this.vy = this.jumpForce; 
-            sfx.jump();
+            this.vy = this.jumpForce; sfx.jump();
             for(let i=0; i<5; i++) {
                 particles.push(new Particle(this.x + this.w/2, this.y + this.h, STATES[this.state].color));
             }
@@ -478,8 +464,7 @@
 
         setState(newState) {
             if (this.state !== newState) {
-                this.state = newState;
-                sfx.change();
+                this.state = newState; sfx.change();
                 document.querySelectorAll('#controls .btn-action').forEach(b => b.classList.remove('active', 'border-white'));
                 const btnMap = {'WATER': 'btn-water', 'ICE': 'btn-ice', 'VAPOR': 'btn-vapor'};
                 document.getElementById(btnMap[newState]).classList.add('active');
@@ -488,77 +473,51 @@
 
         draw(ctx) {
             if (this.isInvincible && Math.floor(this.animTimer / 100) % 2 === 0) return;
-            
-            let drawW = this.w; let drawH = this.h;
-            let drawY = this.y;
+            let drawW = this.w; let drawH = this.h; let drawY = this.y;
             if (this.vy < 0) { drawW = this.w * 0.9; drawH = this.h * 1.1; }
             else if (this.vy > 0) { drawW = this.w * 1.1; drawH = this.h * 0.9; drawY += this.h*0.1; }
 
             if (playerImg.complete && playerImg.naturalWidth > 0) {
                 ctx.drawImage(playerImg, this.x - 10, drawY - 10, drawW + 20, drawH + 20);
             } else {
-                ctx.fillStyle = STATES[this.state].color;
-                ctx.beginPath();
-                ctx.roundRect(this.x, drawY, drawW, drawH, 10);
-                ctx.fill();
+                ctx.fillStyle = STATES[this.state].color; ctx.beginPath(); ctx.roundRect(this.x, drawY, drawW, drawH, 10); ctx.fill();
             }
-
-            ctx.font = '18px Arial';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fillText(STATES[this.state].emoji, this.x + this.w/2, drawY - 20);
+            ctx.font = '20px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillText(STATES[this.state].emoji, this.x + this.w/2, drawY - 22);
         }
     }
 
     class Enemy {
         constructor(stage) {
             this.stage = stage;
-            this.w = 40; this.h = 40;
-            this.x = width + 50;
+            this.w = 44; this.h = 44;
+            this.x = width + 60;
             this.markedForDeletion = false;
             this.animTimer = Math.random() * 1000;
             
             this.setupType();
             
-            const groundY = height - this.h - 20;
-            const minY = 80; 
-            const roll = Math.random();
+            const groundY = height - this.h - 30;
+            const minY = 90; const roll = Math.random();
             
-            if (roll < 0.20) {
-                this.y = groundY;
-            } else if (roll < 0.60) {
-                this.y = minY + (groundY - minY) * 0.4 + (Math.random() - 0.5) * 60;
-            } else {
-                this.y = minY + (groundY - minY) * 0.1 + Math.random() * ((groundY - minY) * 0.3);
-            }
+            if (roll < 0.20) this.y = groundY;
+            else if (roll < 0.60) this.y = minY + (groundY - minY) * 0.4 + (Math.random() - 0.5) * 60;
+            else this.y = minY + (groundY - minY) * 0.1 + Math.random() * ((groundY - minY) * 0.3);
+            
             this.baseY = this.y;
-            
             this.actualSpeed = this.config.speed * (0.8 + Math.random() * 0.5);
 
             if (this.config.type === 'sine') {
-                this.config.amp = 40 + Math.random() * 40; 
-                this.config.freq = 0.002 + Math.random() * 0.003; 
+                this.config.amp = 40 + Math.random() * 40; this.config.freq = 0.002 + Math.random() * 0.003; 
             }
         }
 
         setupType() {
             const hasHeartOnScreen = enemies.some(e => e.config && e.config.name === '하트 아이템');
-
             if (gameState && gameState.hp <= 2 && !hasHeartOnScreen && gameState.heartSpawnCount < 3 && Math.random() < 0.25) {
                 gameState.heartSpawnCount++; 
-                this.config = {
-                    name: '하트 아이템',
-                    weak: 'ALL',
-                    speed: 1.0,
-                    type: 'linear',
-                    color: '#f43f5e',
-                    icon: '❤️',
-                    hint: '먹으면 체력 +1 회복!'
-                };
-                this.weakness = 'ALL';
-                this.color = '#f43f5e';
-                this.icon = '❤️';
-                return;
+                this.config = { name: '하트 아이템', weak: 'ALL', speed: 1.0, type: 'linear', color: '#f43f5e', icon: '❤️', hint: '체력 +1 회복!' };
+                this.weakness = 'ALL'; this.color = '#f43f5e'; this.icon = '❤️'; return;
             }
 
             const types = [
@@ -576,50 +535,28 @@
                  { name: '흑마법 불꽃', weak: 'ICE', speed: 1.5, type: 'sine', color: '#e879f9', icon: '🔥', amp: 80, freq: 0.004, hint: '얼음으로 꺼!' }]
             ];
 
-            let stageIdx = Math.min(this.stage - 1, 3);
-            let pool;
-
-            if (stageIdx < 3 && Math.random() < 0.15) {
-                pool = types[3];
-            } else {
-                pool = types[stageIdx];
-            }
+            let stageIdx = Math.min(this.stage - 1, 3); let pool;
+            if (stageIdx < 3 && Math.random() < 0.15) pool = types[3]; else pool = types[stageIdx];
             
             let availablePool = pool;
-            if (window.weaknessStreakCount >= 2) {
-                availablePool = pool.filter(e => e.weak !== window.lastSpawnedWeakness);
-            }
-            if (availablePool.length === 0) {
-                availablePool = pool.filter(e => e.name !== window.lastSpawnedEnemy);
-            }
-            if (availablePool.length === 0) {
-                availablePool = pool;
-            }
+            if (window.weaknessStreakCount >= 2) availablePool = pool.filter(e => e.weak !== window.lastSpawnedWeakness);
+            if (availablePool.length === 0) availablePool = pool.filter(e => e.name !== window.lastSpawnedEnemy);
+            if (availablePool.length === 0) availablePool = pool;
             
             this.config = availablePool[Math.floor(Math.random() * availablePool.length)];
             window.lastSpawnedEnemy = this.config.name;
             
             let currentWeak = this.config.weak;
-            if (currentWeak === window.lastSpawnedWeakness) {
-                window.weaknessStreakCount++;
-            } else {
-                window.lastSpawnedWeakness = currentWeak;
-                window.weaknessStreakCount = 1;
-            }
+            if (currentWeak === window.lastSpawnedWeakness) window.weaknessStreakCount++;
+            else { window.lastSpawnedWeakness = currentWeak; window.weaknessStreakCount = 1; }
             
-            this.weakness = this.config.weak;
-            this.color = this.config.color;
-            this.icon = this.config.icon;
+            this.weakness = this.config.weak; this.color = this.config.color; this.icon = this.config.icon;
 
             if (this.weakness === 'RANDOM') {
-                const wKeys = ['WATER', 'ICE', 'VAPOR'];
-                this.actualWeakness = wKeys[Math.floor(Math.random() * wKeys.length)];
-                this.revealTimer = 2000;
+                const wKeys = ['WATER', 'ICE', 'VAPOR']; this.actualWeakness = wKeys[Math.floor(Math.random() * wKeys.length)]; this.revealTimer = 2000;
             }
             if (this.weakness === 'CYCLE') {
-                this.cycleKeys = ['WATER', 'ICE', 'VAPOR'];
-                this.cycleIdx = 0;
-                this.cycleTimer = 0;
+                this.cycleKeys = ['WATER', 'ICE', 'VAPOR']; this.cycleIdx = 0; this.cycleTimer = 0;
             }
         }
 
@@ -632,8 +569,7 @@
         getHintText() {
             if (this.weakness === 'RANDOM') return this.revealTimer > 0 ? "???" : STATES[this.actualWeakness].name + "(으)로 공격!";
             if (this.weakness === 'CYCLE') {
-                const weakName = STATES[this.cycleKeys[this.cycleIdx]].name;
-                const actions = {'물':'녹여', '얼음':'식혀', '수증기':'흩어'};
+                const weakName = STATES[this.cycleKeys[this.cycleIdx]].name; const actions = {'물':'녹여', '얼음':'식혀', '수증기':'흩어'};
                 return `${weakName}(으)로 ${actions[weakName]}!`;
             }
             return this.config.hint;
@@ -648,35 +584,23 @@
         }
 
         update(dt) {
-            const actualDt = dt || 16.67;
-            const timeScale = actualDt / 16.67;
-            const safeScale = Math.min(timeScale, 3);
-
+            const actualDt = dt || 16.67; const timeScale = actualDt / 16.67; const safeScale = Math.min(timeScale, 3);
             this.animTimer += actualDt;
-            const s = gameState.speed * this.actualSpeed * safeScale;
-            const groundY = height - this.h - 20;
+            const s = gameState.speed * this.actualSpeed * safeScale; const groundY = height - this.h - 30;
             
             if (this.config.type === 'sine') {
-                this.x -= s; 
-                this.y = this.baseY + Math.sin(this.animTimer * this.config.freq) * (this.config.amp || 50);
+                this.x -= s; this.y = this.baseY + Math.sin(this.animTimer * this.config.freq) * (this.config.amp || 50);
                 if (this.y > groundY) this.y = groundY; 
             } else if (this.config.type === 'erratic') {
                 this.x -= s;
                 if (Math.random() < 0.05 * safeScale) this.baseY += (Math.random() - 0.5) * 60 * safeScale;
-                if (this.baseY > groundY) this.baseY = groundY; 
-                if (this.baseY < 100) this.baseY = 100;
+                if (this.baseY > groundY) this.baseY = groundY; if (this.baseY < 100) this.baseY = 100;
                 this.y += (this.baseY - this.y) * 0.1 * safeScale;
-            } else {
-                this.x -= s;
-            }
+            } else { this.x -= s; }
 
             if (this.weakness === 'RANDOM' && this.revealTimer > 0) this.revealTimer -= actualDt;
             if (this.weakness === 'CYCLE') {
-                this.cycleTimer += actualDt;
-                if (this.cycleTimer > 2000) {
-                    this.cycleTimer = 0;
-                    this.cycleIdx = (this.cycleIdx + 1) % 3;
-                }
+                this.cycleTimer += actualDt; if (this.cycleTimer > 2000) { this.cycleTimer = 0; this.cycleIdx = (this.cycleIdx + 1) % 3; }
             }
             if (this.x + this.w < 0) this.markedForDeletion = true;
         }
@@ -684,111 +608,57 @@
         draw(ctx) {
             const img = enemyImages[this.config.name];
             if (this.config.name === '하트 아이템') {
-                ctx.save();
-                ctx.shadowColor = '#f43f5e';
-                ctx.shadowBlur = 15;
-                ctx.font = '32px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText('❤️', this.x + this.w/2, this.y + this.h/2);
-                ctx.restore();
+                ctx.save(); ctx.shadowColor = '#f43f5e'; ctx.shadowBlur = 15; ctx.font = '34px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText('❤️', this.x + this.w/2, this.y + this.h/2); ctx.restore();
             } else if (img && img.complete && img.naturalWidth > 0) {
                 ctx.drawImage(img, this.x - 10, this.y - 10, this.w + 20, this.h + 20);
             } else {
-                ctx.font = '24px Arial';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(this.icon, this.x + this.w/2, this.y + this.h/2);
+                ctx.font = '26px Arial'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(this.icon, this.x + this.w/2, this.y + this.h/2);
             }
 
-            const hint = this.getHintText();
-            const dColor = this.getDisplayWeaknessColor();
-            
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.strokeStyle = dColor;
-            ctx.lineWidth = 2;
-            ctx.font = '12px Jua';
+            const hint = this.getHintText(); const dColor = this.getDisplayWeaknessColor();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; ctx.strokeStyle = dColor; ctx.lineWidth = 2; ctx.font = '13px Jua';
             const tWidth = ctx.measureText(hint).width + 10;
-            
-            const bx = this.x + this.w/2;
-            const by = this.y - 15;
+            const bx = this.x + this.w/2; const by = this.y - 15;
 
-            ctx.beginPath();
-            ctx.roundRect(bx - tWidth/2, by - 20, tWidth, 20, 5);
-            ctx.fill();
-            ctx.stroke();
-
-            ctx.beginPath();
-            ctx.moveTo(bx - 5, by);
-            ctx.lineTo(bx + 5, by);
-            ctx.lineTo(bx, by + 5);
-            ctx.fill();
-            ctx.stroke();
+            ctx.beginPath(); ctx.roundRect(bx - tWidth/2, by - 20, tWidth, 20, 5); ctx.fill(); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(bx - 5, by); ctx.lineTo(bx + 5, by); ctx.lineTo(bx, by + 5); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)'; ctx.beginPath(); ctx.moveTo(bx - 4, by - 1); ctx.lineTo(bx + 4, by - 1); ctx.lineTo(bx, by + 4); ctx.fill();
+            ctx.fillStyle = '#000'; ctx.fillText(hint, bx, by - 10);
             
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
-            ctx.beginPath();
-            ctx.moveTo(bx - 4, by - 1);
-            ctx.lineTo(bx + 4, by - 1);
-            ctx.lineTo(bx, by + 4);
-            ctx.fill();
-
-            ctx.fillStyle = '#000';
-            ctx.fillText(hint, bx, by - 10);
-            
-            ctx.font = 'bold 14px Jua';
-            ctx.fillStyle = this.config.name === '하트 아이템' ? '#f43f5e' : '#facc15';
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 3;
-            ctx.strokeText(this.config.name, bx, by - 35);
-            ctx.fillText(this.config.name, bx, by - 35);
+            ctx.font = 'bold 15px Jua'; ctx.fillStyle = this.config.name === '하트 아이템' ? '#f43f5e' : '#facc15'; ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
+            ctx.strokeText(this.config.name, bx, by - 35); ctx.fillText(this.config.name, bx, by - 35);
         }
     }
 
     class Particle {
         constructor(x, y, color) {
             this.x = x; this.y = y; this.color = color;
-            this.vx = (Math.random() - 0.5) * 10;
-            this.vy = (Math.random() - 0.5) * 10;
-            this.life = 1.0;
-            this.decay = 0.02 + Math.random() * 0.03;
-            this.size = Math.random() * 6 + 2;
+            this.vx = (Math.random() - 0.5) * 10; this.vy = (Math.random() - 0.5) * 10;
+            this.life = 1.0; this.decay = 0.02 + Math.random() * 0.03; this.size = Math.random() * 6 + 2;
         }
-        update() {
-            this.x += this.vx; this.y += this.vy;
-            this.life -= this.decay;
-        }
+        update() { this.x += this.vx; this.y += this.vy; this.life -= this.decay; }
         draw(ctx) {
-            ctx.globalAlpha = Math.max(0, this.life);
-            ctx.fillStyle = this.color;
-            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill();
-            ctx.globalAlpha = 1.0;
+            ctx.globalAlpha = Math.max(0, this.life); ctx.fillStyle = this.color;
+            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI*2); ctx.fill(); ctx.globalAlpha = 1.0;
         }
     }
 
     class FloatingText {
         constructor(x, y, text, color, isBig = false) {
-            this.x = x; this.y = y; this.text = text; this.color = color;
-            this.life = 1.0; this.vy = -2; this.isBig = isBig;
+            this.x = x; this.y = y; this.text = text; this.color = color; this.life = 1.0; this.vy = -2; this.isBig = isBig;
         }
         update() { this.y += this.vy; this.life -= 0.02; }
         draw(ctx) {
-            ctx.globalAlpha = Math.max(0, this.life);
-            ctx.fillStyle = this.color;
-            ctx.font = this.isBig ? 'bold 36px Jua' : 'bold 24px Jua';
-            ctx.textAlign = 'center';
-            ctx.strokeStyle = '#000'; ctx.lineWidth = 3;
-            ctx.strokeText(this.text, this.x, this.y);
-            ctx.fillText(this.text, this.x, this.y);
-            ctx.globalAlpha = 1.0;
+            ctx.globalAlpha = Math.max(0, this.life); ctx.fillStyle = this.color;
+            ctx.font = this.isBig ? 'bold 36px Jua' : 'bold 24px Jua'; ctx.textAlign = 'center';
+            ctx.strokeStyle = '#000'; ctx.lineWidth = 3; ctx.strokeText(this.text, this.x, this.y); ctx.fillText(this.text, this.x, this.y); ctx.globalAlpha = 1.0;
         }
     }
 
     function drawBackground(dt) {
-        const currentStage = Math.min(gameState.stage, 4);
-        const img = bgImages[currentStage];
-        const actualDt = dt || 16.67;
-        const timeScale = actualDt / 16.67;
-        const safeScale = Math.min(timeScale, 3);
+        const currentStage = Math.min(gameState.stage, 4); const img = bgImages[currentStage];
+        const actualDt = dt || 16.67; const timeScale = actualDt / 16.67; const safeScale = Math.min(timeScale, 3);
 
         if (img && img.complete && img.naturalWidth > 0) {
             const imgAspect = img.naturalWidth / img.naturalHeight;
@@ -796,27 +666,22 @@
             if (isNaN(drawWidth) || drawWidth === 0) drawWidth = width;
 
             gameState.bgX -= (gameState.speed * 0.3) * safeScale; 
-            if (gameState.bgX <= -drawWidth) {
-                gameState.bgX += drawWidth;
-            }
+            if (gameState.bgX <= -drawWidth) gameState.bgX += drawWidth;
 
             ctx.drawImage(img, gameState.bgX, 0, drawWidth, height);
             ctx.drawImage(img, gameState.bgX + drawWidth, 0, drawWidth, height);
             
-            if (gameState.bgX + drawWidth * 2 < width) {
-                ctx.drawImage(img, gameState.bgX + drawWidth * 2, 0, drawWidth, height);
+            // 와이드 모니터 대응을 위한 삼중 반복 스크롤
+            let currentX = gameState.bgX + drawWidth * 2;
+            while (currentX < width) {
+                ctx.drawImage(img, currentX, 0, drawWidth, height);
+                currentX += drawWidth;
             }
         } else {
-            const colors = STAGE_COLORS[currentStage - 1];
-            const grad = ctx.createLinearGradient(0, 0, 0, height);
-            grad.addColorStop(0, colors[0]);
-            grad.addColorStop(1, colors[1]);
-            ctx.fillStyle = grad;
-            ctx.fillRect(0, 0, width, height);
+            const colors = STAGE_COLORS[currentStage - 1]; const grad = ctx.createLinearGradient(0, 0, 0, height);
+            grad.addColorStop(0, colors[0]); grad.addColorStop(1, colors[1]); ctx.fillStyle = grad; ctx.fillRect(0, 0, width, height);
         }
-
-        ctx.fillStyle = 'rgba(0,0,0,0.5)';
-        ctx.fillRect(0, height - 20, width, 20);
+        ctx.fillStyle = 'rgba(0,0,0,0.5)'; ctx.fillRect(0, height - 30, width, 30);
     }
 
     function checkCollision(p, e) {
@@ -826,14 +691,9 @@
     function showComboEffect() {
         const comboEl = document.getElementById('combo-display');
         if (gameState.combo >= 2) {
-            comboEl.innerText = `${gameState.combo} 연속 처치!`;
-            comboEl.classList.remove('hidden');
-            comboEl.classList.remove('animate-bounce');
-            void comboEl.offsetWidth; 
-            comboEl.classList.add('animate-bounce');
-        } else {
-            comboEl.classList.add('hidden');
-        }
+            comboEl.innerText = `${gameState.combo} 연속 처치!`; comboEl.classList.remove('hidden'); comboEl.classList.remove('animate-bounce');
+            void comboEl.offsetWidth; comboEl.classList.add('animate-bounce');
+        } else { comboEl.classList.add('hidden'); }
     }
 
     function switchScene(sceneId) {
@@ -842,22 +702,14 @@
     }
 
     function initGame() {
-        player = new Player();
-        enemies = [];
-        particles = [];
-        floatingTexts = [];
+        player = new Player(); enemies = []; particles = []; floatingTexts = [];
         gameState = {
             isPlaying: true, score: 0, combo: 0, hp: GAME_CONFIG.maxHp,
             stage: 1, time: 0, speed: GAME_CONFIG.baseSpeed,
             lastSpawnTime: 0, currentSpawnRate: GAME_CONFIG.spawnRate,
-            nextSpawnDelay: GAME_CONFIG.spawnRate,
-            bgX: 0,
-            heartSpawnCount: 0 
+            nextSpawnDelay: GAME_CONFIG.spawnRate, bgX: 0, heartSpawnCount: 0 
         };
-        
-        window.lastSpawnedEnemy = '';
-        window.lastSpawnedWeakness = '';
-        window.weaknessStreakCount = 0;
+        window.lastSpawnedEnemy = ''; window.lastSpawnedWeakness = ''; window.weaknessStreakCount = 0;
 
         updateHUD();
         document.getElementById('controls').classList.remove('hidden');
@@ -866,8 +718,7 @@
         if (audioCtx.state === 'suspended') audioCtx.resume();
         
         playBGM(true); 
-        lastTime = performance.now();
-        reqId = requestAnimationFrame(gameLoop);
+        lastTime = performance.now(); reqId = requestAnimationFrame(gameLoop);
     }
 
     function updateHUD() {
@@ -878,73 +729,46 @@
     }
 
     function gameOver(isClear = false) {
-        gameState.isPlaying = false;
-        cancelAnimationFrame(reqId);
-        stopBGM();
-        
+        gameState.isPlaying = false; cancelAnimationFrame(reqId); stopBGM();
         playBGM(false);
-        
-        const titleEl = document.getElementById('gameover-title');
-        const descEl = document.getElementById('gameover-desc');
+        const titleEl = document.getElementById('gameover-title'); const descEl = document.getElementById('gameover-desc');
         
         if (isClear) {
-            sfx.stage();
-            titleEl.innerText = "✨ 게임 클리어! ✨";
-            titleEl.className = "text-5xl text-blue-400 mb-4 font-bold text-shadow";
+            sfx.stage(); titleEl.innerText = "✨ 게임 클리어! ✨"; titleEl.className = "text-5xl text-blue-400 mb-4 font-bold text-shadow z-10";
             descEl.innerHTML = "\"대단해요! 열 마법사를 물리쳤어요!<br>당신은 진정한 <span class='text-blue-300 font-bold'>물의 상태 변화 마스터</span>입니다!<br>물 왕국에 다시 평화가 찾아왔어요.\"";
         } else {
-            sfx.gameover();
-            titleEl.innerText = "게임 종료";
-            titleEl.className = "text-6xl text-red-500 mb-4 font-bold text-shadow";
+            sfx.gameover(); titleEl.innerText = "게임 종료"; titleEl.className = "text-6xl text-red-500 mb-4 font-bold text-shadow z-10";
             descEl.innerHTML = "\"탐험대원이 쓰러졌어요...<br>하지만 왕국은 아직 포기하지 않았어요!<br>다시 도전해서 물 왕국을 구해주세요!\"";
         }
         
-        document.getElementById('controls').classList.add('hidden');
-        document.getElementById('hud').style.pointerEvents = 'none';
-        
+        document.getElementById('controls').classList.add('hidden'); document.getElementById('hud').style.pointerEvents = 'none';
         const highScore = parseInt(localStorage.getItem('waterRunHighScore') || '0');
-        document.getElementById('result-score').innerText = gameState.score;
-        document.getElementById('result-stage').innerText = gameState.stage;
-        
+        document.getElementById('result-score').innerText = gameState.score; document.getElementById('result-stage').innerText = gameState.stage;
         if (gameState.score > highScore) {
-            localStorage.setItem('waterRunHighScore', gameState.score);
-            document.getElementById('result-highscore').innerText = gameState.score;
+            localStorage.setItem('waterRunHighScore', gameState.score); document.getElementById('result-highscore').innerText = gameState.score;
             document.getElementById('new-record').classList.remove('hidden');
-        } else {
-            document.getElementById('result-highscore').innerText = highScore;
-            document.getElementById('new-record').classList.add('hidden');
-        }
+        } else { document.getElementById('result-highscore').innerText = highScore; document.getElementById('new-record').classList.add('hidden'); }
         switchScene('scene-gameover');
     }
 
     function nextStage() {
-        gameState.stage++;
-        gameState.speed *= GAME_CONFIG.speedMultiplier;
+        gameState.stage++; gameState.speed *= GAME_CONFIG.speedMultiplier;
         gameState.currentSpawnRate = Math.max(GAME_CONFIG.minSpawnRate, gameState.currentSpawnRate * 0.85);
         if (gameState.hp < GAME_CONFIG.maxHp) gameState.hp++;
-        updateHUD();
-        sfx.stage();
+        updateHUD(); sfx.stage();
         
-        const stMsg = document.getElementById('stage-transition');
-        const stageNames = ['얼음 동굴', '증기 화산', '안개 숲', '열 마법사의 성!'];
+        const stMsg = document.getElementById('stage-transition'); const stageNames = ['얼음 동굴', '증기 화산', '안개 숲', '열 마법사의 성!'];
         document.getElementById('stage-transition-text').innerText = `${gameState.stage}단계\n${stageNames[Math.min(gameState.stage-1, 3)]}`;
-        stMsg.classList.add('active');
-        setTimeout(() => stMsg.classList.remove('active'), 1500);
+        stMsg.classList.add('active'); setTimeout(() => stMsg.classList.remove('active'), 1500);
     }
 
     function gameLoop(timestamp) {
         if (!gameState.isPlaying) return;
-        const dt = timestamp - lastTime;
-        lastTime = timestamp;
+        const dt = timestamp - lastTime; lastTime = timestamp;
 
         gameState.time += dt;
         if (gameState.time > GAME_CONFIG.stageDuration * gameState.stage) {
-            if (gameState.stage >= 4) {
-                gameOver(true);
-                return;
-            } else {
-                nextStage();
-            }
+            if (gameState.stage >= 4) { gameOver(true); return; } else { nextStage(); }
         }
 
         ctx.clearRect(0, 0, width, height);
@@ -954,73 +778,43 @@
         player.draw(ctx);
 
         if (timestamp - gameState.lastSpawnTime > gameState.nextSpawnDelay) {
-            enemies.push(new Enemy(gameState.stage));
-            gameState.lastSpawnTime = timestamp;
+            enemies.push(new Enemy(gameState.stage)); gameState.lastSpawnTime = timestamp;
             gameState.nextSpawnDelay = gameState.currentSpawnRate * (0.6 + Math.random() * 0.8);
         }
 
         for (let i = enemies.length - 1; i >= 0; i--) {
-            const enemy = enemies[i];
-            enemy.update(dt);
-            
+            const enemy = enemies[i]; enemy.update(dt);
             if (!enemy.markedForDeletion && checkCollision(player, enemy)) {
                 if (enemy.config.name === '하트 아이템') {
-                    if (gameState.hp < GAME_CONFIG.maxHp) {
-                        gameState.hp++;
-                        updateHUD();
-                    }
-                    sfx.kill(); 
+                    if (gameState.hp < GAME_CONFIG.maxHp) { gameState.hp++; updateHUD(); }
+                    sfx.kill();
                     for(let k=0; k<15; k++) particles.push(new Particle(enemy.x+enemy.w/2, enemy.y+enemy.h/2, '#f43f5e'));
                     floatingTexts.push(new FloatingText(enemy.x, enemy.y, `HP +1 ❤️`, '#f43f5e', true));
                     enemy.markedForDeletion = true;
                 } else if (!player.isInvincible) {
                     const actualWeakness = enemy.getActualWeakness();
-                    
                     if (player.state === actualWeakness) {
-                        let gainedScore = 10;
-                        if (enemy.config.name === '혼돈 정령') gainedScore = 50; 
-                        else if (enemy.stage === 4) gainedScore = 20;
-                        
-                        gameState.combo++;
-                        if (gameState.combo >= 5) gainedScore *= 3;
-                        else if (gameState.combo >= 3) gainedScore *= 2;
-                        
-                        gameState.score += gainedScore;
-                        sfx.kill();
-                        if(gameState.combo > 1) sfx.combo(gameState.combo);
-                        
+                        let gainedScore = 10; if (enemy.config.name === '혼돈 정령') gainedScore = 50; else if (enemy.stage === 4) gainedScore = 20;
+                        gameState.combo++; if (gameState.combo >= 5) gainedScore *= 3; else if (gameState.combo >= 3) gainedScore *= 2;
+                        gameState.score += gainedScore; sfx.kill(); if(gameState.combo > 1) sfx.combo(gameState.combo);
                         for(let k=0; k<15; k++) particles.push(new Particle(enemy.x+enemy.w/2, enemy.y+enemy.h/2, STATES[actualWeakness].color));
                         floatingTexts.push(new FloatingText(enemy.x, enemy.y, `+${gainedScore}`, '#4ade80', gameState.combo >= 3));
-                        showComboEffect();
-                        updateHUD();
-                        enemy.markedForDeletion = true;
+                        showComboEffect(); updateHUD(); enemy.markedForDeletion = true;
                     } else {
-                        gameState.hp--;
-                        gameState.combo = 0;
-                        player.isInvincible = true;
-                        player.invincibleTimer = 1500;
-                        sfx.hit();
-                        showComboEffect();
-                        updateHUD();
+                        gameState.hp--; gameState.combo = 0; player.isInvincible = true; player.invincibleTimer = 1500; sfx.hit(); showComboEffect(); updateHUD();
                         for(let k=0; k<10; k++) particles.push(new Particle(player.x+player.w/2, player.y+player.h/2, '#ef4444'));
                         if (gameState.hp <= 0) { gameOver(); return; }
                     }
                 }
             }
-            
-            enemy.draw(ctx);
-            if (enemy.markedForDeletion) enemies.splice(i, 1);
+            enemy.draw(ctx); if (enemy.markedForDeletion) enemies.splice(i, 1);
         }
 
         for (let i = particles.length - 1; i >= 0; i--) {
-            particles[i].update();
-            particles[i].draw(ctx);
-            if (particles[i].life <= 0) particles.splice(i, 1);
+            particles[i].update(); particles[i].draw(ctx); if (particles[i].life <= 0) particles.splice(i, 1);
         }
         for (let i = floatingTexts.length - 1; i >= 0; i--) {
-            floatingTexts[i].update();
-            floatingTexts[i].draw(ctx);
-            if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
+            floatingTexts[i].update(); floatingTexts[i].draw(ctx); if (floatingTexts[i].life <= 0) floatingTexts.splice(i, 1);
         }
 
         reqId = requestAnimationFrame(gameLoop);
@@ -1045,7 +839,6 @@
     });
 
     window.addEventListener('contextmenu', e => e.preventDefault());
-
 </script>
 </body>
 </html>
