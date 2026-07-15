@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <!-- Google tag (gtag.js) -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-DC7N6KQBG0"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+
+      gtag('config', 'G-DC7N6KQBG0');
+    </script>
+    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>물 탐험대: 상태 변화 런</title>
@@ -201,6 +211,71 @@
             box-shadow: 0 4px 6px rgba(0,0,0,0.3);
             z-index: 10;
         }
+
+        /* 제작자 표기 스타일 */
+        .creator-credit {
+            position: absolute;
+            bottom: 24px;
+            z-index: 10;
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+            padding: 10px 18px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            background: rgba(5, 10, 20, 0.58);
+            backdrop-filter: blur(6px);
+            -webkit-backdrop-filter: blur(6px);
+            text-align: center;
+            color: #f7fbff;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.22);
+        }
+
+        .creator-name {
+            font-size: clamp(14px, 1.3vw, 18px);
+            line-height: 1.35;
+            font-weight: 700;
+            word-break: keep-all;
+        }
+
+        .creator-name strong {
+            font-weight: 850;
+        }
+
+        .creator-purpose {
+            font-size: clamp(12px, 1.05vw, 15px);
+            line-height: 1.4;
+            font-weight: 500;
+            color: rgba(235, 244, 255, 0.82);
+            word-break: keep-all;
+        }
+
+        /* 메인 타이틀 화면의 버튼 위치 조정 (제작자 표기와 겹치지 않게) */
+        #scene-title .btn-casual {
+            bottom: 110px;
+        }
+
+        /* 가로 화면이나 높이가 낮은 기기 대응 */
+        @media (max-height: 600px) {
+            .creator-credit {
+                bottom: 12px;
+                padding: 6px 14px;
+                gap: 2px;
+            }
+
+            .creator-name {
+                font-size: 13px;
+            }
+
+            .creator-purpose {
+                font-size: 11px;
+            }
+
+            #scene-title .btn-casual {
+                bottom: 85px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -240,6 +315,16 @@
         <div class="scene-bg-blur" style="background-image: url('image1.png');"></div>
         <div class="scene-content" style="background-image: url('image1.png');"></div>
         <button id="btn-to-howto" class="btn-casual blue">조작 방법 보기</button>
+        
+        <!-- 추가된 제작자 표기 -->
+        <div class="creator-credit" aria-label="제작자 안내">
+            <div class="creator-name">
+                기획·제작: <strong>쓰로인훈쌤 김종훈</strong>
+            </div>
+            <div class="creator-purpose">
+                초등 수업을 위한 무료 교육 콘텐츠
+            </div>
+        </div>
     </div>
 
     <!-- 2. 조작 방법 화면 -->
